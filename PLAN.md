@@ -1,7 +1,7 @@
-# PLAN.md — P1 AIS Mobility Data Warehouse (DRAFT v0.1, not approved)
+# PLAN.md — P1 AIS Mobility Data Warehouse (v1.0, approved)
 
 Repo: `ais-mobility-warehouse` | Owner: Ali Moiez | Drafted: Wed 28 Oct 2026
-Status: **DRAFT. No project code is written until Ali approves this file.**
+Status: **APPROVED by Ali on 29 Oct 2026.**
 Items marked **[OPEN]** wait on Ali's answers. Items marked **[VERIFY]** are not yet confirmed from an official source.
 
 ## 1. Goal and definition of done

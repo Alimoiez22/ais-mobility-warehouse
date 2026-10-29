@@ -1,6 +1,6 @@
 # AIS Mobility Data Warehouse
 
-> Status: work in progress (milestone M0, repository skeleton). Nothing below is a result yet.
+> Status: work in progress (milestone M0: database environment). Nothing below is a result yet.
 
 A reproducible data warehouse built on one day of real ship-tracking (AIS) data from the Danish Maritime Authority, using PostgreSQL, PostGIS and MobilityDB in Docker.
 
@@ -21,7 +21,17 @@ A reproducible data warehouse built on one day of real ship-tracking (AIS) data 
 | `data/` | Raw data, downloaded locally, never committed |
 
 ## How to reproduce
-Coming at milestone M0: `docker compose up` followed by `make all`.
+Requirements: Docker (with Compose), GNU Make, Git.
+
+```bash
+cp .env.example .env    # PowerShell: Copy-Item .env.example .env
+make all                # starts the database and enables PostGIS + MobilityDB
+make status             # shows the container and extension versions
+```
+
+Other targets: `make psql` (SQL prompt), `make logs`, `make down` (stop, keep data), `make destroy` (stop and delete data).
+
+The database image is pinned by digest in `docker-compose.yml`, so every run uses the same PostgreSQL, PostGIS and MobilityDB versions.
 
 ## Plan
 See [PLAN.md](PLAN.md).

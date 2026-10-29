@@ -1,0 +1,13 @@
+# Store and check out text files with LF line endings on every OS.
+# The database runs in a Linux container, where Windows CRLF endings can
+# break shell scripts and Makefile recipes.
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF.
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files are never converted.
+*.png binary
+*.zip binary

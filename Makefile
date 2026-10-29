@@ -4,12 +4,15 @@
 # Read POSTGRES_USER and POSTGRES_DB from .env (copy .env.example first).
 -include .env
 
+# Which day of AIS data to use. Override with: make download AIS_DATE=2026-10-27
+AIS_DATE ?= 2026-10-26
+
 PSQL = docker compose exec -T db psql -v ON_ERROR_STOP=1 -U $(POSTGRES_USER) -d $(POSTGRES_DB)
 
-.PHONY: all up init status psql logs down destroy
+.PHONY: all up init download status psql logs down destroy
 
 ## all: run the full pipeline (grows with each milestone)
-all: init
+all: init download
 
 ## up: start the database and wait until it is healthy
 up:
@@ -18,6 +21,10 @@ up:
 ## init: start the database and create the PostGIS and MobilityDB extensions
 init: up
 	$(PSQL) -f /sql/00_extensions.sql
+
+## download: fetch one day of AIS data, verify its checksum, unzip into data/
+download:
+	uv run python scripts/download.py --date $(AIS_DATE)
 
 ## status: show the container state and the installed extension versions
 status:

@@ -39,7 +39,13 @@ See [PLAN.md](PLAN.md).
 ## Data source and attribution
 Contains data from the Danish Maritime Authority that is used in accordance with the conditions for the use of Danish public data.
 
-Raw data is not redistributed in this repository. It is downloaded by a script and verified with a checksum.
+Raw data is not redistributed in this repository. `make download` fetches it and verifies it against the SHA-256 checksum pinned in [`data.lock.json`](data.lock.json).
+
+| Day used | Zip | Uncompressed CSV | Columns |
+|---|---|---|---|
+| 26 Oct 2026 (`aisdk-2026-10-26.zip`) | 567.5 MB | 2.86 GB | 26 |
+
+The day was chosen as the newest full day available on 29 Oct 2026. It is a normal 24-hour day (the Danish daylight-saving change was on 25 Oct). The zip was fetched with a resumable multi-connection downloader because the connection was slow, so the lock file has no server `Last-Modified` value; the checksum identifies the file exactly.
 
 ## AI-use note
 AI assistance (Claude) was used for planning, explanations and review. The author chose the cleaning rules, designed the conceptual schema, wrote the business questions, interpreted the results and wrote the report.

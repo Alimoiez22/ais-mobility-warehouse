@@ -1,0 +1,19 @@
+ship_type,ships,reports,avg_reported_speed_kn
+Pleasure,39,2458,0.0
+Passenger,32,7007,4.3
+Cargo,27,5179,5.9
+Sailing,19,1144,0.0
+Dredging,5,2124,0.0
+Other,5,948,0.0
+Tug,5,2224,0.4
+Tanker,5,1546,12.6
+Pilot,4,2219,0.0
+Unknown,4,39,10.7
+SAR,4,149,0.1
+Law enforcement,4,726,0.0
+Port tender,3,227,0.0
+Reserved,1,17,0.0
+Fishing,1,7,0.0
+Towing,1,61,0.0
+Diving,1,79,0.0
+Military,1,59,0.0

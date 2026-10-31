@@ -1,0 +1,3 @@
+gap_minutes,segments_total,single_report_segments,trips,ships,points_in_trips,instants_after_normalisation,median_points,median_duration_min,median_length_km,total_length_km,trips_avg_speed_over_50kn
+10,14351,4182,10169,2824,9141364,7747572,10,27.0,0.02,165329,11
+30,5465,977,4488,2843,9144569,7747886,423,432.7,0.77,167866,7

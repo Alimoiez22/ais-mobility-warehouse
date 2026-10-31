@@ -1,0 +1,7 @@
+step,rule,rows_before,rows_removed,rows_after,pct_of_step_input,pct_of_raw,description
+0,typed_copy,15808081,0,15808081,0.00,0.00,All staging rows copied with typed columns; nothing removed
+1,exact_duplicates,15808081,6076234,9731847,38.44,38.44,Remove rows identical in all 26 source columns to an earlier row (keep first)
+2,non_vessel_transmitter,9731847,474638,9257209,4.88,3.00,Remove reports whose type of mobile is not Class A or Class B
+3,invalid_ship_mmsi,9257209,39377,9217832,0.43,0.25,Remove MMSIs that are not 9 digits starting with 2-7
+4,outside_study_area,9217832,13150,9204682,0.14,0.08,"Remove positions outside 53-59 N, 2-17 E (includes the latitude-91 not-available code)"
+5,same_ship_same_second,9204682,59136,9145546,0.64,0.37,Keep the first report per MMSI and timestamp

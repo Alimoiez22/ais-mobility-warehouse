@@ -1,0 +1,134 @@
+ship_type,nav_status,reports,ships
+Cargo,(all statuses),2003136,511
+Cargo,Under way using engine,1803532,397
+Cargo,Moored,72877,158
+Cargo,At anchor,38294,109
+Cargo,Constrained by her draught,32361,9
+Cargo,Unknown,28373,14
+Cargo,Under way sailing,16177,5
+Cargo,Power-driven vessel towing astern,8788,1
+Cargo,Restricted maneuverability,1725,2
+Cargo,Not under command,1009,1
+Diving,(all statuses),5122,5
+Diving,Under way using engine,2611,1
+Diving,Unknown,1857,3
+Dredging,(all statuses),187411,48
+Dredging,Under way using engine,96171,18
+Dredging,Restricted maneuverability,60611,10
+Dredging,Unknown,17481,9
+Dredging,Moored,11697,17
+Dredging,At anchor,1451,4
+Fishing,(all statuses),2420407,426
+Fishing,Engaged in fishing,1480676,197
+Fishing,Under way using engine,521761,78
+Fishing,Unknown,345086,125
+Fishing,Under way sailing,26109,3
+Fishing,Reserved for future amendment [HSC],17468,2
+Fishing,Moored,11306,21
+Fishing,Power-driven vessel towing astern,8749,1
+Fishing,Reserved for future use,8569,1
+HSC,(all statuses),182091,51
+HSC,Under way using engine,105822,20
+HSC,Reserved for future amendment [HSC],43646,3
+HSC,Moored,22988,38
+HSC,Under way sailing,8646,1
+Law enforcement,(all statuses),48328,28
+Law enforcement,Under way using engine,36733,13
+Law enforcement,Moored,5711,14
+Law enforcement,Unknown,4674,5
+Law enforcement,Restricted maneuverability,1194,1
+Medical,Under way using engine,8687,1
+Medical,(all statuses),8687,1
+Military,(all statuses),71970,36
+Military,Under way using engine,62113,21
+Military,Moored,8127,19
+Not party to conflict,Under way using engine,11660,2
+Not party to conflict,(all statuses),11660,2
+Other,(all statuses),416322,150
+Other,Under way using engine,231992,55
+Other,Restricted maneuverability,59576,13
+Other,Moored,40203,82
+Other,Engaged in fishing,35633,4
+Other,Unknown,33281,17
+Other,Reserved for future amendment [HSC],8806,1
+Other,Not under command,4280,1
+Other,At anchor,2126,5
+Passenger,(all statuses),1129451,239
+Passenger,Under way using engine,957606,161
+Passenger,Unknown,95187,47
+Passenger,Moored,27968,83
+Passenger,Restricted maneuverability,21211,3
+Passenger,Under way sailing,20974,2
+Passenger,Reserved for future amendment [WIG],6505,1
+Pilot,(all statuses),424393,61
+Pilot,Under way using engine,370603,44
+Pilot,Unknown,17424,5
+Pilot,Moored,14643,12
+Pilot,Constrained by her draught,11920,1
+Pilot,Reserved for future amendment [WIG],9803,2
+Pleasure,(all statuses),248801,398
+Pleasure,Unknown,207462,381
+Pleasure,Under way using engine,34749,6
+Pleasure,Moored,5342,11
+Pleasure,Under way sailing,1248,1
+Port tender,(all statuses),34501,18
+Port tender,Under way using engine,21656,4
+Port tender,Unknown,10849,10
+Port tender,Moored,1996,4
+Reserved,(all statuses),28244,14
+Reserved,Under way using engine,12993,3
+Reserved,Restricted maneuverability,8793,1
+Reserved,Moored,5663,10
+Sailing,(all statuses),176775,276
+Sailing,Unknown,130888,256
+Sailing,Under way using engine,27223,5
+Sailing,Under way sailing,7042,3
+Sailing,Moored,5918,14
+Sailing,Engaged in fishing,5645,2
+SAR,(all statuses),407349,95
+SAR,Under way using engine,281055,47
+SAR,Unknown,83966,32
+SAR,Under way sailing,23716,4
+SAR,Engaged in fishing,11380,1
+SAR,Moored,7218,14
+Tanker,(all statuses),838267,196
+Tanker,Under way using engine,769789,165
+Tanker,Constrained by her draught,37215,12
+Tanker,At anchor,17710,50
+Tanker,Moored,11787,35
+Tanker,Unknown,1765,3
+Towing,(all statuses),26824,14
+Towing,Under way sailing,11817,1
+Towing,Under way using engine,7699,1
+Towing,Unknown,4075,7
+Towing,Moored,3233,5
+Towing long/wide,(all statuses),9172,2
+Towing long/wide,Restricted maneuverability,9161,1
+Tug,(all statuses),297925,103
+Tug,Under way using engine,232079,56
+Tug,Moored,32088,61
+Tug,Restricted maneuverability,20535,4
+Tug,Unknown,7865,10
+Tug,Under way sailing,4458,1
+Unknown,(all statuses),157737,265
+Unknown,Under way using engine,62563,136
+Unknown,Unknown,54871,59
+Unknown,Engaged in fishing,20406,6
+Unknown,Moored,10511,54
+Unknown,Restricted maneuverability,8532,6
+WIG,(all statuses),9755,2
+WIG,Engaged in fishing,9742,1
+(all types),(all statuses),9145546,2944
+(all types),Under way using engine,5659097,1234
+(all types),Engaged in fishing,1563482,211
+(all types),Unknown,1047795,991
+(all types),Moored,301159,657
+(all types),Restricted maneuverability,191552,44
+(all types),Under way sailing,120639,26
+(all types),Constrained by her draught,81496,22
+(all types),Reserved for future amendment [HSC],70007,7
+(all types),At anchor,62602,189
+(all types),Power-driven vessel towing astern,17551,3
+(all types),Reserved for future amendment [WIG],16308,3
+(all types),Reserved for future use,8569,1
+(all types),Not under command,5289,2

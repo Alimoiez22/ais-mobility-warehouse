@@ -17,8 +17,12 @@ BEGIN
     IF EXISTS (SELECT 1 FROM mobility.trips WHERE n_points < 2 OR start_ts >= end_ts) THEN
         RAISE EXCEPTION 'trip with fewer than 2 points or non-increasing time';
     END IF;
-    IF EXISTS (SELECT 1 FROM mobility.trips WHERE numInstants(trip) <> n_points) THEN
-        RAISE EXCEPTION 'tgeompoint instant count differs from n_points';
+    -- MobilityDB normalises a sequence: an instant that lies exactly on the straight line
+    -- between its neighbours (e.g. a moored ship repeating the same position) adds no
+    -- information under linear interpolation and is dropped. So the stored instant count
+    -- may be smaller than n_points, but never larger, and a trip keeps at least 2.
+    IF EXISTS (SELECT 1 FROM mobility.trips WHERE numInstants(trip) > n_points OR numInstants(trip) < 2) THEN
+        RAISE EXCEPTION 'tgeompoint has more instants than reports, or fewer than 2';
     END IF;
     RAISE NOTICE 'test_trips: all checks passed';
 END $$;

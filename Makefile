@@ -16,7 +16,7 @@ TRIP_GAP ?= 30
 PSQL = docker compose exec -T db psql -v ON_ERROR_STOP=1 -U $(POSTGRES_USER) -d $(POSTGRES_DB)
 PSQLQ = $(PSQL) -q
 
-.PHONY: all up init download load profile clean trips star olap bench figures summary test status psql logs down destroy
+.PHONY: all up init download load profile clean trips trips-check star olap bench figures summary test status psql logs down destroy
 
 ## all: run the full pipeline from the raw file to the figures
 all: init download load profile clean trips star olap bench figures summary
@@ -58,6 +58,10 @@ trips:
 	$(PSQLQ) -f /sql/30_mobilitydb_check.sql
 	$(PSQLQ) -v gap=$(GAP_A) -f /sql/31_trips.sql
 	$(PSQLQ) -v gap=$(GAP_B) -f /sql/31_trips.sql
+	$(MAKE) trips-check
+
+## trips-check: test the trips and write the gap comparison (no rebuild)
+trips-check:
 	$(PSQLQ) -f /sql/tests/test_trips.sql
 	$(PSQLQ) --csv -f /sql/32_trips_compare.sql > results/trips_compare.csv
 

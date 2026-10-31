@@ -1,0 +1,127 @@
+ship_type,day_part,reports,ships
+Anti-pollution,afternoon,132,1
+Anti-pollution,evening,130,2
+Anti-pollution,morning,127,1
+Anti-pollution,night,127,1
+Anti-pollution,(whole day),516,2
+Cargo,afternoon,495354,426
+Cargo,evening,565475,451
+Cargo,morning,461556,411
+Cargo,night,480751,402
+Cargo,(whole day),2003136,511
+Diving,afternoon,861,5
+Diving,evening,729,4
+Diving,morning,2765,4
+Diving,night,767,4
+Diving,(whole day),5122,5
+Dredging,afternoon,53450,46
+Dredging,evening,51853,44
+Dredging,morning,44234,47
+Dredging,night,37874,43
+Dredging,(whole day),187411,48
+Fishing,afternoon,602200,409
+Fishing,evening,594058,410
+Fishing,morning,613130,413
+Fishing,night,611019,406
+Fishing,(whole day),2420407,426
+HSC,afternoon,51532,50
+HSC,evening,55803,48
+HSC,morning,48602,50
+HSC,night,26154,48
+HSC,(whole day),182091,51
+Law enforcement,afternoon,18279,27
+Law enforcement,evening,8262,20
+Law enforcement,morning,14588,25
+Law enforcement,night,7199,17
+Law enforcement,(whole day),48328,28
+Medical,afternoon,2157,1
+Medical,evening,2093,1
+Medical,morning,2347,1
+Medical,night,2090,1
+Medical,(whole day),8687,1
+Military,afternoon,37951,31
+Military,evening,12283,26
+Military,morning,15758,25
+Military,night,5978,18
+Military,(whole day),71970,36
+Not party to conflict,afternoon,3005,2
+Not party to conflict,evening,4292,2
+Not party to conflict,morning,2178,1
+Not party to conflict,night,2185,1
+Not party to conflict,(whole day),11660,2
+Other,afternoon,106514,139
+Other,evening,111203,139
+Other,morning,109557,139
+Other,night,89048,130
+Other,(whole day),416322,150
+Passenger,afternoon,296733,227
+Passenger,evening,277525,225
+Passenger,morning,299035,225
+Passenger,night,256158,208
+Passenger,(whole day),1129451,239
+Pilot,afternoon,108824,58
+Pilot,evening,109214,59
+Pilot,morning,107070,56
+Pilot,night,99285,56
+Pilot,(whole day),424393,61
+Pleasure,afternoon,64610,365
+Pleasure,evening,59310,334
+Pleasure,morning,63011,370
+Pleasure,night,61870,341
+Pleasure,(whole day),248801,398
+Port tender,afternoon,8779,17
+Port tender,evening,9111,15
+Port tender,morning,8318,18
+Port tender,night,8293,17
+Port tender,(whole day),34501,18
+Reserved,afternoon,8036,14
+Reserved,evening,7198,14
+Reserved,morning,6294,13
+Reserved,night,6716,12
+Reserved,(whole day),28244,14
+Sailing,afternoon,47358,250
+Sailing,evening,40847,210
+Sailing,morning,47926,247
+Sailing,night,40644,205
+Sailing,(whole day),176775,276
+SAR,afternoon,102382,85
+SAR,evening,96634,80
+SAR,morning,101908,85
+SAR,night,106425,76
+SAR,(whole day),407349,95
+Spare 1,afternoon,171,1
+Spare 1,evening,181,1
+Spare 1,morning,171,1
+Spare 1,night,179,1
+Spare 1,(whole day),702,1
+Tanker,afternoon,202445,164
+Tanker,evening,204887,174
+Tanker,morning,216480,155
+Tanker,night,214455,152
+Tanker,(whole day),838267,196
+Towing,afternoon,6443,13
+Towing,evening,6427,13
+Towing,morning,7720,14
+Towing,night,6234,12
+Towing,(whole day),26824,14
+Towing long/wide,afternoon,2287,1
+Towing long/wide,evening,2281,2
+Towing long/wide,morning,2266,2
+Towing long/wide,night,2338,2
+Towing long/wide,(whole day),9172,2
+Tug,afternoon,82015,94
+Tug,evening,62456,96
+Tug,morning,82413,94
+Tug,night,71041,92
+Tug,(whole day),297925,103
+Unknown,afternoon,40610,112
+Unknown,evening,38606,167
+Unknown,morning,41721,118
+Unknown,night,36800,91
+Unknown,(whole day),157737,265
+WIG,afternoon,1880,2
+WIG,evening,3860,2
+WIG,morning,1966,2
+WIG,night,2049,2
+WIG,(whole day),9755,2
+(all types),(whole day),9145546,2944

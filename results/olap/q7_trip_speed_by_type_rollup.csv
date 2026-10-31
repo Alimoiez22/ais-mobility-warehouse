@@ -1,0 +1,26 @@
+transponder,ship_type,trips,median_length_km,median_avg_speed_kn
+Class A,(all types),2928,3.6,0.2
+Class A,Cargo,759,30.8,5.4
+Class A,Fishing,422,2.3,0.1
+Class A,Passenger,320,12.6,1.5
+Class A,Unknown,287,0.3,0.3
+Class A,Tanker,254,66.2,6.3
+Class A,Other,220,0.9,0.0
+Class A,Tug,155,1.3,0.0
+Class A,SAR,125,0.7,0.0
+Class A,Pilot,82,10.9,0.8
+Class A,HSC,60,1.2,0.0
+Class A,Law enforcement,50,0.1,0.0
+Class A,Dredging,42,4.9,0.1
+Class A,Sailing,38,0.0,0.0
+Class A,Military,34,35.8,3.8
+Class A,Pleasure,23,0.7,0.0
+Class A,Reserved,20,0.3,0.0
+Class B,(all types),1560,0.1,0.0
+Class B,Pleasure,785,0.0,0.0
+Class B,Sailing,399,0.2,0.0
+Class B,Fishing,120,0.4,0.0
+Class B,Passenger,92,1.1,0.1
+Class B,Unknown,25,0.2,0.1
+Class B,SAR,24,0.3,0.0
+(all classes),(all types),4488,0.8,0.0

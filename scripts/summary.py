@@ -57,10 +57,10 @@ def main() -> int:
     if trips:
         md += ["## Trips: comparing gap values", "",
                table(["Gap (min)", "Trips", "Ships", "Single-report pieces", "Median points",
-                      "Median duration (min)", "Median length (km)", "Trips > 50 kn max speed"],
+                      "Median duration (min)", "Median length (km)", "Trips avg speed > 50 kn"],
                      [[t["gap_minutes"], n(t["trips"]), n(t["ships"]), n(t["single_report_segments"]),
                        n(t["median_points"]), t["median_duration_min"], t["median_length_km"],
-                       n(t["trips_max_speed_over_50kn"])] for t in trips]), ""]
+                       n(t["trips_avg_speed_over_50kn"])] for t in trips]), ""]
 
     star = read(R / "star_counts.csv")
     if star:

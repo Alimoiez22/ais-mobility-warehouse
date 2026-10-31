@@ -73,7 +73,7 @@ FROM mobility.trips t
 JOIN dw.dim_ship s ON s.mmsi = t.mmsi
 CROSS JOIN LATERAL (
     SELECT extract(epoch FROM t.end_ts - t.start_ts) AS duration_s,
-           length(transform(t.trip, 25832))         AS length_m
+           ST_Length(trajectory(t.trip)::geography) AS length_m   -- geodesic metres
 ) m
 WHERE t.gap_minutes = :trip_gap;
 

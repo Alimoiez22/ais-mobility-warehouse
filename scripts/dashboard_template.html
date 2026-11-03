@@ -6,23 +6,30 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* Layout: one 1120px column; summary figures, then the map as the centrepiece, then one band per research question. */
+/* Layout: a deep-navy band (title + key figures), the map as a night chart, then one band per research question on a light page. */
 :root {
-  --bg: #f5f6f7; --surface: #ffffff; --ink: #0f1419; --ink-2: #48515a; --muted: #6e7780; --rule: #e0e4e8;
-  --water: #eef2f5; --land: #dce1e5; --coast: #c3cbd2; --bar: #b4bcc4; --halo: #ffffff;
-  --s0: #2a78d6; --s1: #eb6834; --s2: #1baf7a; --s3: #98a1a9; --track-alpha: 0.5;
+  --bg: #f3f5f7; --surface: #ffffff; --ink: #0f1419; --ink-2: #48515a; --muted: #6e7780; --rule: #e0e4e8; --bar: #b4bcc4;
+  --s0: #2a78d6; --s1: #eb6834; --s2: #1baf7a; --s3: #a3acb5;
+  --c-bar: #2a6f97; --c-peak: #e8743b; --c-clean: #8c2f45;
+  --b-none: #a3acb5; --b-gist: #e8743b; --b-spgist: #8c2f45; --b-gist_sorted: #1f9d6b;
+  /* navy band and map: the same in both themes */
+  --navy: #0d2238; --navy-2: #14304f; --navy-rule: #23446a; --on-navy: #eef3f8; --on-navy-2: #a3b6ca;
+  --water: #0d2238; --land: #1a3350; --coast: #2b4a6c; --halo: #0d2238;
+  --t0: #3987e5; --t1: #d95926; --t2: #199e70; --t3: #7f91a6; --track-alpha: 0.62;
   --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0d1114; --surface: #141a1e; --ink: #e8ecef; --ink-2: #b1bac2; --muted: #87909a; --rule: #252d33;
-  --water: #0f1519; --land: #1d252b; --coast: #2e3940; --bar: #4b555e; --halo: #141a1e;
-  --s0: #3987e5; --s1: #d95926; --s2: #199e70; --s3: #66707a; --track-alpha: 0.62; color-scheme: dark; } }
+  --bar: #4b555e; --s0: #3987e5; --s1: #d95926; --s2: #199e70; --s3: #66707a;
+  --c-bar: #3b8db8; --c-peak: #d95926; --c-clean: #a64d86;
+  --b-none: #5b6670; --b-gist: #d95926; --b-spgist: #a64d86; --b-gist_sorted: #199e70; color-scheme: dark; } }
 :root[data-theme="dark"] {
   --bg: #0d1114; --surface: #141a1e; --ink: #e8ecef; --ink-2: #b1bac2; --muted: #87909a; --rule: #252d33;
-  --water: #0f1519; --land: #1d252b; --coast: #2e3940; --bar: #4b555e; --halo: #141a1e;
-  --s0: #3987e5; --s1: #d95926; --s2: #199e70; --s3: #66707a; --track-alpha: 0.62; color-scheme: dark; }
+  --bar: #4b555e; --s0: #3987e5; --s1: #d95926; --s2: #199e70; --s3: #66707a;
+  --c-bar: #3b8db8; --c-peak: #d95926; --c-clean: #a64d86;
+  --b-none: #5b6670; --b-gist: #d95926; --b-spgist: #a64d86; --b-gist_sorted: #199e70; color-scheme: dark; }
 
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
@@ -38,15 +45,23 @@ a { color: inherit; text-underline-offset: 3px; }
 .eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 
+.hero { background: var(--navy); color: var(--on-navy); }
+.hero-in { max-width: 1120px; margin: 0 auto; padding-block: 44px 40px; display: grid; gap: 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.hero p { color: var(--on-navy-2); }
+.hero .eyebrow { color: var(--t2); }
 header { display: grid; gap: 12px; }
-.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 13px/1.4 var(--mono); color: var(--muted); }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 13px/1.4 var(--mono); color: var(--on-navy-2); }
+.meta span::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--t1); margin-right: 8px; vertical-align: 1px; }
 
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--rule);
-  border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
-.kpi { background: var(--surface); padding: 18px 20px; display: grid; gap: 4px; align-content: start; }
-.kpi .label { font-size: 13px; color: var(--muted); }
-.kpi .value { font: 500 26px/1.2 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-.kpi .note { font-size: 12.5px; color: var(--ink-2); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--navy-rule);
+  border: 1px solid var(--navy-rule); border-radius: 10px; overflow: hidden; }
+.kpi { background: var(--navy-2); padding: 18px 20px; display: grid; gap: 4px; align-content: start; }
+.kpi .label { font-size: 13px; color: var(--on-navy-2); }
+.kpi .value { font: 500 26px/1.2 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; color: var(--on-navy); }
+.kpi .note { font-size: 12.5px; color: var(--on-navy-2); }
+.eyebrow.rq { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); }
+.eyebrow.rq::before { content: ""; width: 10px; height: 10px; border-radius: 2px; background: var(--rq); }
 
 section { display: grid; gap: 18px; min-width: 0; }
 .head { display: grid; gap: 6px; }
@@ -57,7 +72,7 @@ section { display: grid; gap: 18px; min-width: 0; }
 .caption { font-size: 12.5px; color: var(--muted); margin-top: 10px; max-width: none; }
 
 /* map */
-.mapbox { position: relative; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--water); }
+.mapbox { position: relative; border: 1px solid var(--navy-rule); border-radius: 10px; overflow: hidden; background: var(--water); }
 #map { display: block; width: 100%; height: clamp(380px, 62vw, 640px); touch-action: none; cursor: grab; }
 #map.dragging { cursor: grabbing; }
 .legend { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -68,12 +83,20 @@ section { display: grid; gap: 18px; min-width: 0; }
 .chip[aria-pressed="false"] { color: var(--muted); }
 .chip[aria-pressed="false"] .sw { opacity: 0.25; }
 .chip:focus-visible, .zoom button:focus-visible { outline: 2px solid var(--s0); outline-offset: 2px; }
-.zoom { position: absolute; top: 12px; right: 12px; display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule);
+.zoom { position: absolute; top: 12px; right: 12px; display: grid; gap: 1px; background: var(--navy-rule); border: 1px solid var(--navy-rule);
   border-radius: 8px; overflow: hidden; }
-.zoom button { width: 34px; height: 34px; border: 0; background: var(--surface); color: var(--ink); font: 500 17px/1 var(--sans); cursor: pointer; }
-.zoom button:hover, .chip:hover { background: var(--bg); }
-.maphint { position: absolute; left: 12px; top: 12px; font: 12px/1.3 var(--sans); color: var(--muted);
-  background: color-mix(in srgb, var(--surface) 85%, transparent); padding: 6px 10px; border-radius: 6px; pointer-events: none; }
+.zoom button { width: 34px; height: 34px; border: 0; background: var(--navy-2); color: var(--on-navy); font: 500 17px/1 var(--sans); cursor: pointer; }
+.zoom button:hover { background: var(--navy-rule); }
+.chip:hover { background: var(--bg); }
+.maphint { position: absolute; left: 12px; top: 12px; font: 12px/1.3 var(--sans); color: var(--on-navy-2);
+  background: color-mix(in srgb, var(--navy-2) 88%, transparent); padding: 6px 10px; border-radius: 6px; pointer-events: none; }
+.maplegend { position: absolute; left: 12px; bottom: 34px; display: grid; gap: 4px; font: 12px/1.2 var(--sans); color: var(--on-navy-2);
+  background: color-mix(in srgb, var(--navy-2) 88%, transparent); padding: 8px 10px; border-radius: 6px; pointer-events: none; }
+.maplegend span { display: flex; align-items: center; gap: 8px; }
+.maplegend i { width: 14px; height: 3px; border-radius: 2px; }
+.keys { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--ink-2); }
+.keys span { display: inline-flex; align-items: center; gap: 6px; }
+.keys i { width: 10px; height: 10px; border-radius: 2px; }
 
 .tip { position: fixed; z-index: 20; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--rule);
   border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / 0.14); max-width: 260px; }
@@ -90,6 +113,8 @@ svg.chart .grid { stroke: var(--rule); stroke-width: 1; }
 svg.chart .hit { fill: transparent; }
 svg.chart .bar { fill: var(--bar); }
 svg.chart .bar.on, svg.chart .bar.accent { fill: var(--s0); }
+svg.chart .bar.peak { fill: var(--c-peak); }
+svg.chart .hourbar { fill: var(--c-bar); }
 svg.chart .whisker { stroke: var(--ink-2); stroke-width: 1.5; }
 
 table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
@@ -106,7 +131,7 @@ footer p { color: var(--muted); max-width: 90ch; }
 @media (max-width: 560px) { .wrap { gap: 36px; padding-block: 24px 40px; } .panel { padding: 16px; } .maphint { display: none; } }
 </style>
 <!-- body -->
-<div class="wrap">
+<div class="hero"><div class="hero-in">
   <header>
     <div class="eyebrow">AIS Mobility Warehouse</div>
     <h1>One day of shipping in Danish waters</h1>
@@ -115,6 +140,8 @@ footer p { color: var(--muted); max-width: 90ch; }
   </header>
 
   <div class="kpis" id="kpis"></div>
+</div></div>
+<div class="wrap">
 
   <section aria-labelledby="h-map">
     <div class="head">
@@ -126,6 +153,7 @@ footer p { color: var(--muted); max-width: 90ch; }
       <canvas id="map" role="img" aria-label="Map of ship trips around Denmark on 26 October 2026, coloured by ship group"></canvas>
       <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">&minus;</button><button id="zreset" aria-label="Reset view">&#8634;</button></div>
       <div class="maphint">Hover a line for details</div>
+      <div class="maplegend" id="maplegend" aria-hidden="true"></div>
     </div>
     <p class="caption" id="mapnote"></p>
   </section>
@@ -137,13 +165,13 @@ footer p { color: var(--muted); max-width: 90ch; }
     </div>
     <div class="grid2">
       <div class="panel"><h3>Ships reporting, per hour (UTC)</h3><div id="hourly"></div></div>
-      <div class="panel"><h3>Ships seen during the day, by type</h3><div id="fleet"></div></div>
+      <div class="panel"><h3>Ships seen during the day, by type</h3><div id="fleet"></div><p class="caption">Colours match the ship groups on the map.</p></div>
     </div>
   </section>
 
   <section aria-labelledby="h-clean">
     <div class="head">
-      <div class="eyebrow">Research question 1</div>
+      <div class="eyebrow rq" style="--rq: var(--c-clean)">Research question 1</div>
       <h2 id="h-clean">What the cleaning rules removed</h2>
       <p>The rules run in this order on the raw file. Each bar is the number of reports that rule removed; the label adds its share of the raw total.</p>
     </div>
@@ -152,7 +180,7 @@ footer p { color: var(--muted); max-width: 90ch; }
 
   <section aria-labelledby="h-olap">
     <div class="head">
-      <div class="eyebrow">Research question 2</div>
+      <div class="eyebrow rq" style="--rq: var(--c-bar)">Research question 2</div>
       <h2 id="h-olap">Questions the warehouse answers</h2>
       <p>Eight analytical queries against the star schema: two fact tables (positions and trips) and four dimensions (ship, hour, grid cell, navigational status).</p>
     </div>
@@ -161,10 +189,11 @@ footer p { color: var(--muted); max-width: 90ch; }
 
   <section aria-labelledby="h-bench">
     <div class="head">
-      <div class="eyebrow">Research question 3</div>
+      <div class="eyebrow rq" style="--rq: var(--b-gist)">Research question 3</div>
       <h2 id="h-bench">How much spatial indexes speed up queries</h2>
-      <p>Median of five timed runs after two warm-ups; the thin line marks the middle 50% of runs. Each panel has its own scale. The fastest setup is highlighted.</p>
+      <p>Median of five timed runs after two warm-ups; the thin line marks the middle 50% of runs. Each panel has its own scale.</p>
     </div>
+    <div class="keys" aria-hidden="true"><span><i style="background:var(--b-none)"></i>No index</span><span><i style="background:var(--b-gist)"></i>GiST</span><span><i style="background:var(--b-spgist)"></i>SP-GiST</span><span><i style="background:var(--b-gist_sorted)"></i>GiST, rows sorted by location</span></div>
     <div class="grid3" id="bench"></div>
     <p class="caption" id="benchnote"></p>
   </section>
@@ -245,13 +274,14 @@ const counts = D.groups.map((_, i) => tracks.filter((t) => t.g === i).length);
 
 // legend
 $("legend").innerHTML = D.groups.map((g, i) =>
-  '<button class="chip" type="button" id="grp' + i + '" aria-pressed="true" data-g="' + i + '"><span class="sw" style="background:var(--s' + i + ')"></span>' +
+  '<button class="chip" type="button" id="grp' + i + '" aria-pressed="true" data-g="' + i + '"><span class="sw" style="background:var(--t' + i + ')"></span>' +
   esc(g) + ' <span class="count">' + fmt(counts[i]) + "</span></button>").join("");
 $("legend").addEventListener("click", (e) => {
   const b = e.target.closest(".chip"); if (!b) return;
   const i = +b.dataset.g; visible[i] = !visible[i]; b.setAttribute("aria-pressed", String(visible[i]));
   hover = null; draw();
 });
+$("maplegend").innerHTML = D.groups.map((g, i) => '<span><i style="background:var(--t' + i + ')"></i>' + esc(g) + "</span>").join("");
 $("mapnote").textContent = fmt(tracks.length) + " of " + fmt(D.kpi.trips) + " trips drawn. " +
   (land.length ? "" : "Coastline file missing: run make dashboard on a machine with internet to add it.");
 
@@ -307,13 +337,13 @@ function render() {
     if (!visible[g]) continue;
     ctx.beginPath();
     for (const t of tracks) if (t.g === g && inView(t.box, 4)) pathOf(t.xy);
-    ctx.strokeStyle = css("--s" + g); ctx.stroke();
+    ctx.strokeStyle = css("--t" + g); ctx.stroke();
   }
   ctx.globalAlpha = 1;
   if (hover) {
     ctx.beginPath(); pathOf(hover.xy);
     ctx.lineWidth = lw + 4; ctx.strokeStyle = css("--halo"); ctx.stroke();
-    ctx.lineWidth = lw + 1.6; ctx.strokeStyle = css("--s" + hover.g); ctx.stroke();
+    ctx.lineWidth = lw + 1.6; ctx.strokeStyle = css("--t" + hover.g); ctx.stroke();
   }
   scaleBar();
 }
@@ -324,9 +354,9 @@ function scaleBar() {                    // nautical-mile scale for the latitude
   const steps = [1, 2, 5, 10, 20, 25, 50, 100, 200];
   const nm = steps.reduce((best, s) => (s / nmPerPx <= 120 ? s : best), 1);
   const px = nm / nmPerPx, x = 14, y = H - 18;
-  ctx.strokeStyle = css("--ink-2"); ctx.lineWidth = 1.2;
+  ctx.strokeStyle = css("--on-navy-2"); ctx.lineWidth = 1.2;
   ctx.beginPath(); ctx.moveTo(x, y - 4); ctx.lineTo(x, y); ctx.lineTo(x + px, y); ctx.lineTo(x + px, y - 4); ctx.stroke();
-  ctx.fillStyle = css("--ink-2"); ctx.font = "12px " + css("--mono");
+  ctx.fillStyle = css("--on-navy-2"); ctx.font = "12px " + css("--mono");
   ctx.fillText(nm + " nmi", x + px + 6, y + 1);
 }
 
@@ -438,7 +468,8 @@ function hoverable(node, title, rows) {
 function hourly(host) {
   const data = D.hourly, w = host.clientWidth, h = 240, m = { l: 48, r: 4, t: 12, b: 26 };
   const svg = el("svg", { class: "chart", width: w, height: h, viewBox: "0 0 " + w + " " + h, role: "img", "aria-label": "Bar chart of ships reporting per hour" }, host);
-  const [max, step] = niceScale(Math.max(...data.map((d) => d.ships)));
+  const peak = Math.max(...data.map((d) => d.ships));
+  const [max, step] = niceScale(peak);
   const iw = w - m.l - m.r, ih = h - m.t - m.b, bw = iw / data.length;
   for (let v = 0; v <= max + 1e-9; v += step) {
     const y = m.t + ih - ih * v / max;
@@ -447,7 +478,8 @@ function hourly(host) {
   }
   data.forEach((d, i) => {
     const bh = ih * d.ships / max, x = m.l + i * bw;
-    el("path", { class: "bar", d: roundTop(x + 2, m.t + ih - bh, bw - 4, bh, 3) }, svg);
+    el("path", { class: "bar " + (d.ships === peak ? "peak" : "hourbar"), d: roundTop(x + 2, m.t + ih - bh, bw - 4, bh, 3) }, svg);
+    if (d.ships === peak) el("text", { class: "val", x: x + bw / 2, y: m.t + ih - bh - 6, "text-anchor": "middle" }, svg, fmt(d.ships));
     if (d.h % (w < 420 ? 6 : 3) === 0) el("text", { x: x + bw / 2, y: h - 6, "text-anchor": "middle" }, svg, String(d.h).padStart(2, "0") + ":00");
     const hit = el("rect", { class: "hit", x, y: m.t, width: bw, height: ih }, svg);
     hoverable(hit, String(d.h).padStart(2, "0") + ":00–" + String(d.h + 1).padStart(2, "0") + ":00 UTC",
@@ -472,7 +504,8 @@ function hbars(host, rows, opts) {
   rows.forEach((r, i) => {
     const y = i * rowH + 4, bh = Math.min(14, rowH - 12), bw = Math.max(2, iw * r.v / max);
     el("text", { class: "lab", x: 0, y: y + bh / 2 + 4 }, svg, r.label);
-    el("path", { class: "bar" + (r.accent ? " accent" : ""), d: roundRight(labW, y, bw, bh, 3) }, svg);
+    const bar = el("path", { class: "bar" + (r.accent ? " accent" : ""), d: roundRight(labW, y, bw, bh, 3) }, svg);
+    if (r.color) bar.style.fill = "var(" + r.color + ")";
     let end = labW + bw;
     if (r.lo != null) {
       const x1 = labW + iw * r.lo / max, x2 = labW + iw * r.hi / max;
@@ -488,13 +521,14 @@ function hbars(host, rows, opts) {
 const charts = [];
 const chart = (host, fn) => { charts.push([host, fn]); };
 chart($("hourly"), hourly);
-chart($("fleet"), (host) => hbars(host, D.fleet.map((f) => ({ label: f.type, v: f.ships, text: fmt(f.ships),
+const groupOf = (t) => ({ Cargo: 0, Tanker: 0, Passenger: 1, HSC: 1, Fishing: 2 }[t] ?? 3);
+chart($("fleet"), (host) => hbars(host, D.fleet.map((f) => ({ label: f.type, v: f.ships, text: fmt(f.ships), color: "--s" + groupOf(f.type),
   tip: [f.type, [["Ships", fmt(f.ships)], ["Position reports", fmt(f.reports)]]] })), { aria: "Ships by type", rowH: 24, labW: 130, valW: 56 }));
 
 {
   const label = { exact_duplicates: "Exact duplicates", non_vessel_transmitter: "Not a ship transponder", invalid_ship_mmsi: "Invalid ship ID (MMSI)",
     outside_study_area: "Outside study area", same_ship_same_second: "Same ship, same second", position_jumps: "Impossible position jumps" };
-  chart($("clean"), (host) => hbars(host, D.clean.map((c) => ({ label: c.step + ". " + (label[c.rule] || c.rule), v: c.removed,
+  chart($("clean"), (host) => hbars(host, D.clean.map((c) => ({ label: c.step + ". " + (label[c.rule] || c.rule), v: c.removed, color: "--c-clean",
     text: fmt(c.removed) + "  ·  " + (c.pct < 0.01 && c.removed ? "<0.01" : c.pct.toFixed(2)) + "%",
     tip: [label[c.rule] || c.rule, [["Removed", fmt(c.removed)], ["Share of raw", c.pct.toFixed(2) + "%"]]] })),
     { aria: "Reports removed by each cleaning rule", labW: 200, valW: 150, rowH: 32 }));
@@ -522,8 +556,8 @@ chart($("fleet"), (host) => hbars(host, D.fleet.map((f) => ({ label: f.type, v: 
     const panel = document.createElement("div"); panel.className = "panel";
     panel.innerHTML = "<h3>" + titles[q] + '</h3><div class="plot"></div>';
     $("bench").appendChild(panel);
-    chart(panel.querySelector(".plot"), (host) => hbars(host, rows.map((r) => ({ label: names[r.config] || r.config, v: r.median, lo: r.q1, hi: r.q3, accent: r.median === best,
-      text: fmtMs(r.median), tip: [names[r.config] + " · " + titles[q], [["Median", fmtMs(r.median)], ["Middle 50%", fmtMs(r.q1) + " – " + fmtMs(r.q3)],
+    chart(panel.querySelector(".plot"), (host) => hbars(host, rows.map((r) => ({ label: names[r.config] || r.config, v: r.median, lo: r.q1, hi: r.q3, color: "--b-" + r.config,
+      text: fmtMs(r.median) + (r.median === best ? "  fastest" : ""), tip: [names[r.config] + " · " + titles[q], [["Median", fmtMs(r.median)], ["Middle 50%", fmtMs(r.q1) + " – " + fmtMs(r.q3)],
         ["Speed-up vs no index", r.speedup.toFixed(1) + "×"]]] })), { aria: "Query time by index type", labW: 118, valW: 72, rowH: 30 }));
   }
 }

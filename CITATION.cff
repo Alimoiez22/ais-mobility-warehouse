@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "AIS Mobility Data Warehouse"
+abstract: "A reproducible spatiotemporal data warehouse on one day of Danish Maritime Authority AIS data (15.8 million reports): logged cleaning rules, MobilityDB trips, a star schema with OLAP queries, and a spatial index benchmark."
+authors:
+  - family-names: "Moiez"
+    given-names: "Ali"
+version: "1.0.0"
+date-released: "2026-11-04"
+license: MIT
+repository-code: "https://github.com/Alimoiez22/ais-mobility-warehouse"
+url: "https://alimoiez22.github.io/ais-mobility-warehouse/"
+keywords:
+  - AIS
+  - data warehouse
+  - MobilityDB
+  - PostGIS
+  - PostgreSQL
+  - OLAP
+  - spatial index
+  - data quality

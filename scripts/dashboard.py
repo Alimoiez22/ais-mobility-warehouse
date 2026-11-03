@@ -37,13 +37,20 @@ DATA = ROOT / "data"
 OUT = ROOT / "docs" / "index.html"
 REPO_URL = "https://github.com/Alimoiez22/ais-mobility-warehouse"
 
+# Trip routes are stored as GeoJSON text in one CSV field; long trips exceed csv's 128 KB default.
+csv.field_size_limit(2**31 - 1)
+
 LAND_FILE = DATA / "ne_land_10m.json"
 # world-atlas 2.0.2 on jsDelivr: Natural Earth 1:10m land as TopoJSON. A pinned package
 # version, so the bytes never change; the SHA-256 is printed on download for the record.
 LAND_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/land-10m.json"
 # Area drawn on the map (a little larger than the cleaning rule's 53-59 N, 2-17 E box).
 BBOX = (2.0, 53.0, 17.0, 59.0)  # lon_min, lat_min, lon_max, lat_max
-CLIP = (1.0, 52.5, 18.0, 59.5)
+CLIP = (-6.0, 49.0, 26.0, 63.0)  # land kept well beyond the view, so no clip edge shows when panning
+
+# Extra simplification when the page is built: about 55 m, below what the map can show
+# at its default zoom, and it keeps the page fast and a few MB in size.
+TRACK_TOL = 0.0005
 
 GROUPS = [  # (key, label, ship types)  - order = colour slot order
     ("cargo", "Cargo & tanker", {"Cargo", "Tanker"}),
@@ -185,6 +192,37 @@ def land_rings(topo: dict | None) -> list[list[int]]:
     return rings
 
 
+def simplify(pts, tol: float):
+    """Douglas-Peucker on lon/lat (iterative). tol in degrees; latitude-corrected for x."""
+    if len(pts) < 3:
+        return pts
+    k = __import__("math").cos(__import__("math").radians(56))  # study area is near 56 N
+    keep = [False] * len(pts)
+    keep[0] = keep[-1] = True
+    stack = [(0, len(pts) - 1)]
+    tol2 = tol * tol
+    while stack:
+        i, j = stack.pop()
+        (x1, y1), (x2, y2) = pts[i], pts[j]
+        dx, dy = (x2 - x1) * k, y2 - y1
+        L = dx * dx + dy * dy
+        best, idx = -1.0, -1
+        for m in range(i + 1, j):
+            px, py = (pts[m][0] - x1) * k, pts[m][1] - y1
+            if L:
+                u = max(0.0, min(1.0, (px * dx + py * dy) / L))
+                ex, ey = px - u * dx, py - u * dy
+            else:
+                ex, ey = px, py
+            d = ex * ex + ey * ey
+            if d > best:
+                best, idx = d, m
+        if best > tol2:
+            keep[idx] = True
+            stack += [(i, idx), (idx, j)]
+    return [p for p, f in zip(pts, keep) if f]
+
+
 def group_of(ship_type: str) -> int:
     for i, (_, _, types) in enumerate(GROUPS):
         if types is None or ship_type in types:
@@ -202,7 +240,7 @@ def tracks() -> list[list]:
             continue
         lines = [g["coordinates"]] if g["type"] == "LineString" else g.get("coordinates", [])
         for line in lines:
-            e = encode(line, 10000)
+            e = encode(simplify(line, TRACK_TOL), 10000)
             if len(e) < 4:
                 continue
             out.append([group_of(r["ship_type"]), r["name"].strip().title() or "Unnamed", r["ship_type"],

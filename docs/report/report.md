@@ -20,7 +20,7 @@ Streaming, machine learning and cloud services are out of scope.
 
 ## 2. Data
 
-The source is the Danish Maritime Authority (DMA) historical AIS archive, one CSV per day. The file used is `aisdk-2026-10-26` (zip 567.5 MB, CSV 2.86 GB, 26 columns), the newest complete day when the project started and a normal 24-hour day. Its SHA-256 checksum is pinned in `data.lock.json`, and the raw file is not redistributed. Timestamps are treated as UTC.
+The source is the Danish Maritime Authority (DMA) historical AIS archive, one CSV per day. The file used is `aisdk-2026-10-26` (zip 567.5 MB, CSV 2.86 GB, 26 columns), the newest complete day when the project started and a normal 24-hour day. Its SHA-256 checksum is pinned in `data.lock.json`, and the raw file is not redistributed. Access is granted under the Danish act on the further use of public sector information; DMA's AIS data policy states that the data's correctness is not guaranteed and that it must not be combined so that persons become identifiable. Timestamps are treated as UTC: neither the DMA data pages nor the policy state the zone (checked 4 November 2026).
 
 Profiling the raw table (`results/profile.md`) showed, before any cleaning:
 
@@ -62,7 +62,11 @@ The conceptual model has two facts at different grains:
 - **Position** (one ship at one second), with measures speed, course and heading. It serves traffic and density questions and the index benchmark.
 - **Trip** (one ship's continuous movement until a gap of more than 30 minutes), with measures number of reports, duration, length and average speed. Its geometry is the trajectory.
 
-They share four dimensions: **Ship** (MMSI, name, type, transponder class, size; static attributes take the most frequent value over the day), **Time** (hour, part of day), **Cell** (a regular 0.25° grid) and **Navigational status**. The grid was chosen over real sea-area boundaries so the project depends on a single source file.
+They share four dimensions (Figure 1): **Ship** (MMSI, name, type, transponder class, size; static attributes take the most frequent value over the day), **Time** (hour, part of day), **Cell** (a regular 0.25° grid) and **Navigational status**. The grid was chosen over real sea-area boundaries so the project depends on a single source file.
+
+![Figure 1. Conceptual schema in MultiDim notation](../figures/conceptual_schema.png)
+
+*Figure 1. Conceptual schema in MultiDim notation. Ship has two hierarchies (by type and by transponder class) and Hour has two (part of day, calendar day). The trip fact uses Time and Cell twice, in the roles start and end. In the star schema, type and class are kept as attributes of `dim_ship`, and part of day and day as attributes of `dim_time`.*
 
 ### 3.4 Benchmark design
 
@@ -158,7 +162,7 @@ The image digest, source checksum and every parameter are pinned in the reposito
 
 ## Acknowledgements and AI use
 
-Data: Danish Maritime Authority; contains data used in accordance with the conditions for the use of Danish public data. Coastline in the dashboard: Natural Earth (public domain). Much of the code, and an early draft of this report, were written with an AI assistant (Claude) under the author's direction. The author ran and checked every step, and is responsible for the decisions and conclusions.
+Data: Danish Maritime Authority; contains data used in accordance with the conditions for the use of Danish public data. Coastline in the dashboard: Natural Earth (public domain). Following the DMA policy on identifiable persons, the dashboard withholds the names of pleasure and sailing boats. Much of the code, and an early draft of this report, were written with an AI assistant (Claude) under the author's direction. The author ran and checked every step, and is responsible for the decisions and conclusions.
 
 ## References
 

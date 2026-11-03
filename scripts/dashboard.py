@@ -52,6 +52,11 @@ CLIP = (-6.0, 49.0, 26.0, 63.0)  # land kept well beyond the view, so no clip ed
 # at its default zoom, and it keeps the page fast and a few MB in size.
 TRACK_TOL = 0.0005
 
+# Pleasure and sailing boats are usually privately owned, and their names can point to a person.
+# DMA's AIS data policy forbids combining the data so that persons become identifiable, so the
+# dashboard withholds those names. Commercial ships keep theirs.
+PRIVATE_TYPES = {"Pleasure", "Sailing"}
+
 GROUPS = [  # (key, label, ship types)  - order = colour slot order
     ("cargo", "Cargo & tanker", {"Cargo", "Tanker"}),
     ("passenger", "Passenger & ferry", {"Passenger", "HSC"}),
@@ -243,7 +248,10 @@ def tracks() -> list[list]:
             e = encode(simplify(line, TRACK_TOL), 10000)
             if len(e) < 4:
                 continue
-            out.append([group_of(r["ship_type"]), r["name"].strip().title() or "Unnamed", r["ship_type"],
+            name = r["name"].strip().title() or "Unnamed"
+            if r["ship_type"] in PRIVATE_TYPES:  # DMA policy: do not make persons identifiable
+                name = "Leisure craft (name withheld)"
+            out.append([group_of(r["ship_type"]), name, r["ship_type"],
                         fnum(r["length_km"]), int(fnum(r["duration_min"])), fnum(r["avg_speed_kn"], None),
                         r["start_utc"], r["end_utc"], e])
     return out

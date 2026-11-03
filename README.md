@@ -79,7 +79,11 @@ flowchart LR
 | `dw.dim_cell` | one 0.25° grid cell over 53–59 N, 2–17 E | 1,440 |
 | `dw.dim_nav_status` | one navigational status | 13 |
 
-DDL with column comments: [`sql/40_star_schema.sql`](sql/40_star_schema.sql).
+Conceptual design in MultiDim notation (two fact relationships sharing four dimensions; the trip fact uses Time and Cell in two roles each):
+
+![Conceptual schema in MultiDim notation](docs/figures/conceptual_schema.png)
+
+DDL with column comments: [`sql/40_star_schema.sql`](sql/40_star_schema.sql). The diagram is drawn by [`scripts/conceptual_schema.py`](scripts/conceptual_schema.py).
 
 ## Repository layout
 
@@ -130,7 +134,7 @@ A full run takes about 1.5 hours on a laptop, plus the download. Steps can be re
 ## Limitations
 
 - One day from one provider: daily and seasonal patterns may differ.
-- Timestamps are treated as UTC (the DMA files do not state a zone per row).
+- Timestamps are treated as UTC. Checked on 4 Nov 2026: neither the DMA data pages nor its AIS data policy state the zone, so this stays an assumption; only the hourly figures would shift if it were wrong.
 - The spatial dimension is a regular grid, not real sea areas.
 - Cleaning rule 6 removes isolated position jumps only. Ships whose positions are wrong for a long stretch are not caught; 5 of 4,488 trips still average more than 50 knots.
 - Benchmark times are warm-cache, on one laptop inside Docker's WSL2 VM with 4 GB of memory. Absolute times will differ elsewhere; the relative differences and the page counts are the result.
@@ -145,6 +149,8 @@ Contains data from the Danish Maritime Authority that is used in accordance with
 | 26 Oct 2026 (`aisdk-2026-10-26.zip`) | 567.5 MB | 2.86 GB | 26 | 15,808,081 (3.8 GB staging table) |
 
 The day was the newest full day available on 29 Oct 2026, and a normal 24-hour day (the daylight-saving change was on 25 Oct). The dashboard coastline is Natural Earth 1:10m land (public domain), via the `world-atlas` 2.0.2 package.
+
+Terms, as checked on 4 Nov 2026 in DMA's [AIS data management policy](https://dma.dk/safety-at-sea/navigational-information/ais-data/ais-data-management-policy-): access is granted under the Danish act on the further use of public sector information (act no. 596 of 24 June 2005); DMA does not guarantee the correctness of the data; and the data must not be combined with other data in a way that makes persons identifiable. For that last reason the dashboard withholds the names of pleasure and sailing boats, which are usually privately owned. The policy does not address redistribution, so the raw files are not redistributed. The Danish land-based AIS system is now operated by the Danish Emergency Management Agency.
 
 ## How this project was built
 

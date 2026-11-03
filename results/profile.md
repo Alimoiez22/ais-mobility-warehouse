@@ -1,6 +1,6 @@
 # Raw AIS data profile
 
-Table `staging.ais_raw`, generated 2026-10-29 22:46 UTC by `scripts/profile.py`.
+Table `staging.ais_raw`, generated 2026-11-03 17:53 UTC by `scripts/profile.py`.
 All counts are measured on the full table. Nothing has been removed yet.
 
 ## 1. Overview
@@ -74,8 +74,8 @@ includes the AIS 'not available' code where that code lies outside the range
 | `heading` | degrees | 0 to 359 | 0 | 0 | 422 | 2 | 511: 0 |
 | `rot` | degrees/min | -720 to 720 | 0 | -708.700 | 708.700 | 0 |  |
 | `draught` | metres | 0 to 25.5 | 0 | 0.100 | 25.500 | 0 |  |
-| `width` | metres | 0 to 63 | 0 | 1 | 106 | 85,498 |  |
-| `length` | metres | 0 to 511 | 0 | 2 | 556 | 5,960 |  |
+| `width` | metres | 0 to 126 | 0 | 1 | 106 | 0 |  |
+| `length` | metres | 0 to 1022 | 0 | 2 | 556 | 0 |  |
 
 ## 4. Timestamps
 
@@ -219,18 +219,18 @@ Exact duplicates are a subset of same-MMSI-same-timestamp rows.
 
 | Query | Seconds |
 |---|---|
-| overview | 26.9 |
-| type_of_mobile | 18.9 |
-| completeness | 14.8 |
-| numeric | 147.1 |
-| timestamps | 70.0 |
-| rows_per_hour | 15.2 |
-| mmsi | 23.2 |
-| duplicates | 259.3 |
-| top_type_of_mobile | 4.0 |
-| top_nav_status | 3.9 |
-| top_ship_type | 4.0 |
-| top_pos_fixing_device | 3.2 |
-| top_data_source_type | 4.1 |
+| overview | 29.3 |
+| type_of_mobile | 21.7 |
+| completeness | 16.7 |
+| numeric | 206.1 |
+| timestamps | 81.6 |
+| rows_per_hour | 17.5 |
+| mmsi | 25.7 |
+| duplicates | 260.8 |
+| top_type_of_mobile | 3.3 |
+| top_nav_status | 3.0 |
+| top_ship_type | 3.6 |
+| top_pos_fixing_device | 3.9 |
+| top_data_source_type | 4.0 |
 
-Total: 595 s.
+Total: 677 s.

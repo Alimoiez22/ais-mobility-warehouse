@@ -5,6 +5,7 @@ Usage: uv run python benchmarks/run.py [--runs 5] [--warmups 2]
 Design
   Table    dw.fact_position (one row per cleaned position report), column geom (Point, 4326)
   Indexes  none  | GiST (R-tree over bounding boxes) | SP-GiST (space-partitioning quad-tree)
+           | GiST on a copy of the table physically sorted by location (geohash order)
   Queries  B1 small window   positions in a ~2 km box near Copenhagen harbour
            B2 large window   positions in the Great Belt area (~25 x 55 km)
            B3 kNN            the 10 positions nearest to a point in the Øresund
@@ -13,6 +14,10 @@ Design
            `warmups` unmeasured runs followed by `runs` measured runs of
            EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON). The reported latency is the server's
            "Execution Time". Shared-buffer hits and reads are recorded per run.
+  Why the sorted copy: fact_position is stored in time order, so the rows inside one small
+           area are scattered over many pages and an index still has to read most of them.
+           The sorted copy has the same rows and columns, only in location order, which
+           isolates the effect of physical data layout from the effect of the index itself.
   Caching  WARM cache only: the warm-up runs load the pages into memory. A true cold
            cache would need the OS page cache inside Docker's VM to be dropped, which is
            not reliably possible from here; see the threats to validity.
@@ -42,23 +47,26 @@ import dbutil  # noqa: E402
 
 OUT = dbutil.REPO_ROOT / "results" / "bench"
 TABLE = "dw.fact_position"
+SORTED = "dw.fact_position_sorted"
 
 QUERIES = {
-    "B1_small_window": f"""
-        SELECT count(*) FROM {TABLE}
+    "B1_small_window": """
+        SELECT count(*) FROM {table}
         WHERE geom && ST_MakeEnvelope(12.58, 55.68, 12.62, 55.70, 4326)""",
-    "B2_large_window": f"""
-        SELECT count(*) FROM {TABLE}
+    "B2_large_window": """
+        SELECT count(*) FROM {table}
         WHERE geom && ST_MakeEnvelope(10.80, 55.10, 11.20, 55.60, 4326)""",
-    "B3_knn_10": f"""
-        SELECT position_id FROM {TABLE}
+    "B3_knn_10": """
+        SELECT position_id FROM {table}
         ORDER BY geom <-> ST_SetSRID(ST_MakePoint(12.70, 55.90), 4326)
         LIMIT 10""",
 }
+# config: (table queried, index DDL or None)
 CONFIGS = {
-    "none": None,
-    "gist": f"CREATE INDEX bench_geom_idx ON {TABLE} USING gist (geom)",
-    "spgist": f"CREATE INDEX bench_geom_idx ON {TABLE} USING spgist (geom)",
+    "none": (TABLE, None),
+    "gist": (TABLE, f"CREATE INDEX bench_geom_idx ON {TABLE} USING gist (geom)"),
+    "spgist": (TABLE, f"CREATE INDEX bench_geom_idx ON {TABLE} USING spgist (geom)"),
+    "gist_sorted": (SORTED, f"CREATE INDEX bench_sorted_geom_idx ON {SORTED} USING gist (geom)"),
 }
 
 
@@ -103,21 +111,30 @@ def main() -> int:
     (OUT / "environment.txt").write_text(environment(), encoding="utf-8", newline="\n")
 
     timings, index_rows = [], []
-    for config, ddl in CONFIGS.items():
-        print(f"== index: {config}")
+    for config, (table, ddl) in CONFIGS.items():
+        print(f"== index: {config} on {table}")
         drop_spatial_indexes()
+        prep_s = 0.0
+        if table == SORTED:
+            start = time.perf_counter()
+            dbutil.run(["-c", f"DROP TABLE IF EXISTS {SORTED}"])
+            dbutil.run(["-c", f"CREATE UNLOGGED TABLE {SORTED} AS SELECT * FROM {TABLE} ORDER BY ST_GeoHash(geom, 10)"])
+            prep_s = time.perf_counter() - start
+            print(f"   sorted copy built in {prep_s:.1f} s")
         if ddl:
+            index_name = ddl.split()[2]
             start = time.perf_counter()
             dbutil.run(["-c", ddl])
             build_s = time.perf_counter() - start
-            size = dbutil.scalar("SELECT pg_size_pretty(pg_relation_size('dw.bench_geom_idx'))")
-            size_bytes = dbutil.scalar("SELECT pg_relation_size('dw.bench_geom_idx')")
-            index_rows.append({"config": config, "build_seconds": round(build_s, 1),
-                               "size": size, "size_bytes": size_bytes})
-            print(f"   built in {build_s:.1f} s, size {size}")
-        dbutil.run(["-c", f"VACUUM ANALYZE {TABLE}"])
+            size = dbutil.scalar(f"SELECT pg_size_pretty(pg_relation_size('dw.{index_name}'))")
+            size_bytes = dbutil.scalar(f"SELECT pg_relation_size('dw.{index_name}')")
+            index_rows.append({"config": config, "table": table, "build_seconds": round(build_s, 1),
+                               "sort_seconds": round(prep_s, 1), "size": size, "size_bytes": size_bytes})
+            print(f"   index built in {build_s:.1f} s, size {size}")
+        dbutil.run(["-c", f"VACUUM ANALYZE {table}"])
 
-        for qname, sql in QUERIES.items():
+        for qname, template in QUERIES.items():
+            sql = template.format(table=table)
             for _ in range(args.warmups):
                 explain(sql)
             for run_no in range(1, args.runs + 1):
@@ -136,8 +153,9 @@ def main() -> int:
             print(f"   {qname}: median {statistics.median(ms):,.2f} ms")
 
     drop_spatial_indexes()
+    dbutil.run(["-c", f"DROP TABLE IF EXISTS {SORTED}"])   # free the disk space again
     # Leave the warehouse with a GiST index, the usual choice, so later queries are fast.
-    dbutil.run(["-c", CONFIGS["gist"].replace("bench_geom_idx", "fact_position_geom_gist")])
+    dbutil.run(["-c", CONFIGS["gist"][1].replace("bench_geom_idx", "fact_position_geom_gist")])
 
     with (OUT / "timings.csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(timings[0]), lineterminator="\n")

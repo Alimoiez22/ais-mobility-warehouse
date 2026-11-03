@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results"
 FIGURES = ROOT / "docs" / "figures"
-COLORS = {"none": "#8c8c8c", "gist": "#2f6fb0", "spgist": "#d9822b"}
+COLORS = {"none": "#8c8c8c", "gist": "#2f6fb0", "spgist": "#d9822b", "gist_sorted": "#3a9b5c"}
 
 
 def read(path: Path) -> list[dict[str, str]]:
@@ -57,7 +57,7 @@ def benchmark_figure() -> None:
     rows = read(RESULTS / "bench" / "summary.csv")
     queries = list(dict.fromkeys(r["query"] for r in rows))
     configs = list(dict.fromkeys(r["config"] for r in rows))
-    fig, ax = plt.subplots(figsize=(8, 4))
+    fig, ax = plt.subplots(figsize=(8.5, 4.6))
     height = 0.8 / len(configs)
     for i, config in enumerate(configs):
         data = {r["query"]: r for r in rows if r["config"] == config}

@@ -4,11 +4,11 @@ Anti-pollution,evening,130,2
 Anti-pollution,morning,127,1
 Anti-pollution,night,127,1
 Anti-pollution,(whole day),516,2
-Cargo,afternoon,495354,426
-Cargo,evening,565475,451
-Cargo,morning,461556,411
-Cargo,night,480751,402
-Cargo,(whole day),2003136,511
+Cargo,afternoon,495349,426
+Cargo,evening,565473,451
+Cargo,morning,461551,411
+Cargo,night,480745,402
+Cargo,(whole day),2003118,511
 Diving,afternoon,861,5
 Diving,evening,729,4
 Diving,morning,2765,4
@@ -19,16 +19,16 @@ Dredging,evening,51853,44
 Dredging,morning,44234,47
 Dredging,night,37874,43
 Dredging,(whole day),187411,48
-Fishing,afternoon,602200,409
-Fishing,evening,594058,410
+Fishing,afternoon,602199,409
+Fishing,evening,594055,410
 Fishing,morning,613130,413
-Fishing,night,611019,406
-Fishing,(whole day),2420407,426
-HSC,afternoon,51532,50
-HSC,evening,55803,48
-HSC,morning,48602,50
+Fishing,night,611016,406
+Fishing,(whole day),2420400,426
+HSC,afternoon,51521,50
+HSC,evening,55800,48
+HSC,morning,48600,50
 HSC,night,26154,48
-HSC,(whole day),182091,51
+HSC,(whole day),182075,51
 Law enforcement,afternoon,18279,27
 Law enforcement,evening,8262,20
 Law enforcement,morning,14588,25
@@ -54,11 +54,11 @@ Other,evening,111203,139
 Other,morning,109557,139
 Other,night,89048,130
 Other,(whole day),416322,150
-Passenger,afternoon,296733,227
-Passenger,evening,277525,225
-Passenger,morning,299035,225
-Passenger,night,256158,208
-Passenger,(whole day),1129451,239
+Passenger,afternoon,296730,227
+Passenger,evening,277518,225
+Passenger,morning,299030,225
+Passenger,night,256132,208
+Passenger,(whole day),1129410,239
 Pilot,afternoon,108824,58
 Pilot,evening,109214,59
 Pilot,morning,107070,56
@@ -94,11 +94,11 @@ Spare 1,evening,181,1
 Spare 1,morning,171,1
 Spare 1,night,179,1
 Spare 1,(whole day),702,1
-Tanker,afternoon,202445,164
+Tanker,afternoon,202440,164
 Tanker,evening,204887,174
-Tanker,morning,216480,155
+Tanker,morning,216479,155
 Tanker,night,214455,152
-Tanker,(whole day),838267,196
+Tanker,(whole day),838261,196
 Towing,afternoon,6443,13
 Towing,evening,6427,13
 Towing,morning,7720,14
@@ -116,12 +116,12 @@ Tug,night,71041,92
 Tug,(whole day),297925,103
 Unknown,afternoon,40610,112
 Unknown,evening,38606,167
-Unknown,morning,41721,118
+Unknown,morning,41656,118
 Unknown,night,36800,91
-Unknown,(whole day),157737,265
+Unknown,(whole day),157672,265
 WIG,afternoon,1880,2
 WIG,evening,3860,2
 WIG,morning,1966,2
 WIG,night,2049,2
 WIG,(whole day),9755,2
-(all types),(whole day),9145546,2944
+(all types),(whole day),9145393,2944

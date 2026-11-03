@@ -1,10 +1,10 @@
 ship_type,trips,ships,avg_length_km,avg_duration_min
-Fishing,401,400,9.5,1362
-Cargo,385,382,159.8,1201
+Fishing,401,400,8.7,1362
+Cargo,385,382,151.2,1201
 Pleasure,326,322,3.0,1166
-Passenger,219,212,103.8,1176
+Passenger,219,212,96.0,1176
 Sailing,215,215,7.4,1174
-Tanker,144,143,198.3,1246
+Tanker,144,143,184.3,1246
 Other,129,128,22.0,1276
 Tug,86,86,21.5,1300
 SAR,76,75,9.4,1224

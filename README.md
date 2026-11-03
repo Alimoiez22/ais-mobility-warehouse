@@ -10,7 +10,7 @@ A reproducible data warehouse built on one day of real ship-tracking (AIS) data 
 - **RQ2:** Can a multidimensional model answer realistic maritime questions with OLAP queries?
 - **RQ3:** How much do spatial indexes (none vs GiST vs SP-GiST) change query latency?
 
-**Results:** [`results/summary.md`](results/summary.md) (generated), with the figures in `docs/figures/`.
+**Results:** [`results/summary.md`](results/summary.md) (generated) and an interactive dashboard, [`docs/index.html`](docs/index.html): open it in a browser, or publish it with GitHub Pages (Settings > Pages > branch `main`, folder `/docs`). It shows a traffic map, traffic by hour, the cleaning steps, trip statistics, all 8 query results and the benchmark.
 
 ## Architecture
 
@@ -19,13 +19,13 @@ flowchart LR
     A[DMA AIS zip<br/>aisdk-2026-10-26] -->|make download<br/>SHA-256 pinned| B[data/*.csv<br/>2.86 GB]
     B -->|make load<br/>COPY, all TEXT| C[(staging.ais_raw<br/>15.8 M rows)]
     C -->|make profile| P[results/profile.md]
-    C -->|make clean<br/>5 rules, logged| D[(clean.ais)]
+    C -->|make clean<br/>6 rules, logged| D[(clean.ais)]
     D -->|make trips<br/>MobilityDB tgeompoint| E[(mobility.trips)]
     D -->|make star| F[(dw: fact_position<br/>fact_trip + 4 dims)]
     E --> F
     F -->|make olap| G[results/olap/]
     F -->|make bench<br/>none / GiST / SP-GiST| H[results/bench/]
-    G --> S[results/summary.md<br/>docs/figures/]
+    G --> S[results/summary.md<br/>docs/index.html dashboard]
     H --> S
     subgraph Docker
         C
@@ -43,13 +43,14 @@ flowchart LR
 | Download | `make download` | Fetch one day, verify the SHA-256 in `data.lock.json`, unzip | `data/` (not committed) |
 | Load | `make load` | Stream the CSV into an all-TEXT staging table | `results/staging_rowcount.csv` |
 | Profile | `make profile` | Count missing values, out-of-range values, duplicates, odd IDs | `results/profile.md` |
-| Clean (M2) | `make clean` | Typed copy, then 5 rules in order, each logging rows removed; tests | `results/cleaning.csv` |
+| Clean (M2) | `make clean` | Typed copy, then 6 rules in order, each logging rows removed; tests | `results/cleaning.csv` |
 | Trips (M3) | `make trips` | Split each ship's positions on time gaps (10 and 30 min) into MobilityDB trips; tests | `results/trips_compare.csv` |
 | Star (M4) | `make star` | Dimensions and two fact tables, foreign keys, integrity tests | `results/star_counts.csv` |
 | OLAP (M5) | `make olap` | 8 business questions (ROLLUP, CUBE, spatial, temporal, proximity) | `results/olap/`, `results/olap_runtimes.csv` |
-| Benchmark (M6) | `make bench` | 3 spatial queries x 3 index types, 5 warm runs, EXPLAIN plans | `results/bench/` |
+| Benchmark (M6) | `make bench` | 3 spatial queries x 4 setups (none, GiST, SP-GiST, GiST on a location-sorted copy), 5 warm runs, EXPLAIN plans | `results/bench/` |
 | Figures | `make figures` | Charts from the result files | `docs/figures/` |
 | Summary | `make summary` | All headline numbers in one file | `results/summary.md` |
+| Dashboard | `make dashboard` | Map and hourly exports, then a static results page | `docs/index.html` |
 
 `make test` reruns every data test. Decisions behind each step, with reasons: [`docs/decisions.md`](docs/decisions.md).
 
@@ -88,6 +89,7 @@ The database image is pinned by digest in `docker-compose.yml`, so every run use
 - One day of data from one provider: patterns (traffic by hour, busiest areas) may not generalise to other days or seasons.
 - Timestamps are assumed to be UTC.
 - The spatial dimension is a regular grid, not real sea areas.
+- Cleaning rule 6 removes isolated position jumps only; a ship whose positions are wrong for a long stretch (sustained offset) is not caught.
 - Benchmark numbers are warm-cache only, on one laptop inside Docker's WSL2 VM; absolute times will differ elsewhere, relative differences are the result.
 
 ## Plan

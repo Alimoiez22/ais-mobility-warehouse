@@ -12,14 +12,16 @@ AIS_DATE ?= 2026-10-26
 GAP_A ?= 10
 GAP_B ?= 30
 TRIP_GAP ?= 30
+# Rule 6: a report is a position jump if the implied speed into AND out of it exceed this (knots).
+MAX_KN ?= 60
 
 PSQL = docker compose exec -T db psql -v ON_ERROR_STOP=1 -U $(POSTGRES_USER) -d $(POSTGRES_DB)
 PSQLQ = $(PSQL) -q
 
-.PHONY: all up init download load profile clean trips trips-check star olap bench figures summary test status psql logs down destroy
+.PHONY: all up init download load profile clean trips trips-check star olap bench figures summary dashboard test status psql logs down destroy
 
 ## all: run the full pipeline from the raw file to the figures
-all: init download load profile clean trips star olap bench figures summary
+all: init download load profile clean trips star olap bench figures summary dashboard
 
 ## up: start the database and wait until it is healthy
 up:
@@ -42,7 +44,7 @@ load:
 profile:
 	uv run python scripts/profile.py
 
-## clean: M2, apply the cleaning rules in order, test them, write results/cleaning.csv
+## clean: M2, apply the 6 cleaning rules in order, test them, write results/cleaning.csv
 clean:
 	$(PSQLQ) -f /sql/20_clean_typed.sql
 	$(PSQLQ) -f /sql/21_rule_exact_duplicates.sql
@@ -50,6 +52,7 @@ clean:
 	$(PSQLQ) -f /sql/23_rule_invalid_mmsi.sql
 	$(PSQLQ) -f /sql/24_rule_outside_area.sql
 	$(PSQLQ) -f /sql/25_rule_same_ship_same_second.sql
+	$(PSQLQ) -v max_kn=$(MAX_KN) -f /sql/26_rule_position_jumps.sql
 	$(PSQLQ) -f /sql/tests/test_clean.sql
 	$(PSQLQ) --csv -f /sql/29_cleaning_report.sql > results/cleaning.csv
 
@@ -76,7 +79,7 @@ star:
 olap:
 	uv run python scripts/run_olap.py
 
-## bench: M6, compare no index vs GiST vs SP-GiST (5 runs each, EXPLAIN plans saved)
+## bench: M6, compare no index / GiST / SP-GiST / GiST on a location-sorted copy (5 runs each, plans saved)
 bench:
 	uv run python benchmarks/run.py
 
@@ -87,6 +90,13 @@ figures:
 ## summary: collect all headline numbers into results/summary.md
 summary:
 	uv run python scripts/summary.py
+
+## dashboard: export trip lines and hourly data, build docs/index.html (self-contained; open it in a browser)
+dashboard:
+	$(PSQLQ) --csv -f /sql/43_cell_density.sql > results/cell_density.csv
+	$(PSQLQ) --csv -f /sql/44_hourly_traffic.sql > results/hourly_traffic.csv
+	$(PSQLQ) --csv -f /sql/45_trip_tracks.sql > data/trip_tracks.csv
+	uv run python scripts/dashboard.py
 
 ## test: rerun all data tests against the current database
 test:

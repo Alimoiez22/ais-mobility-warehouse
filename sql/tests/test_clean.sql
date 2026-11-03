@@ -41,6 +41,11 @@ BEGIN
         RAISE EXCEPTION 'rule 5: same ship at the same second remains';
     END IF;
 
+    -- 4b. All six rules ran (steps 0-6).
+    IF (SELECT count(*) FROM clean.cleaning_log) <> 7 THEN
+        RAISE EXCEPTION 'expected 7 log rows (steps 0-6), found %', (SELECT count(*) FROM clean.cleaning_log);
+    END IF;
+
     -- 5. No row is lost without being counted.
     IF n_staging - (SELECT sum(rows_removed) FROM clean.cleaning_log) <> n_clean THEN
         RAISE EXCEPTION 'removed rows do not add up';

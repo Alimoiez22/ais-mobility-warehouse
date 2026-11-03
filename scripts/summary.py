@@ -57,7 +57,7 @@ def main() -> int:
     if trips:
         md += ["## Trips: comparing gap values", "",
                table(["Gap (min)", "Trips", "Ships", "Single-report pieces", "Median points",
-                      "Median duration (min)", "Median length (km)", "Trips avg speed > 50 kn"],
+                      "Median duration (min)", "Median length (km)", "Trips > 50 kn average speed"],
                      [[t["gap_minutes"], n(t["trips"]), n(t["ships"]), n(t["single_report_segments"]),
                        n(t["median_points"]), t["median_duration_min"], t["median_length_km"],
                        n(t["trips_avg_speed_over_50kn"])] for t in trips]), ""]
@@ -76,12 +76,12 @@ def main() -> int:
     bench = read(R / "bench" / "summary.csv")
     idx = read(R / "bench" / "indexes.csv")
     if bench:
-        md += ["## RQ3: spatial index benchmark (warm cache, 5 runs)", "",
+        md += ["## RQ3: spatial index benchmark (warm cache, 2 warm-ups + 5 measured runs)", "",
                table(["Query", "Index", "Median (ms)", "IQR (ms)", "Speed-up vs none"],
                      [[b["query"], b["config"], n(b["median_ms"]), n(b["iqr_ms"]), b["speedup_vs_none"]] for b in bench]),
                ""]
         if idx:
-            md += [table(["Index", "Build time (s)", "Size"], [[i["config"], i["build_seconds"], i["size"]] for i in idx]), ""]
+            md += [table(["Index", "Table", "Sort time (s)", "Index build (s)", "Size"], [[i["config"], i.get("table", ""), i.get("sort_seconds", ""), i["build_seconds"], i["size"]] for i in idx]), ""]
         md += ["![Benchmark](../docs/figures/benchmark.png)", "",
                "Hardware and settings: `results/bench/environment.txt`. Plans: `results/bench/plans/`.", ""]
 

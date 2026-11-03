@@ -21,3 +21,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Local pipeline output logs
+run.log

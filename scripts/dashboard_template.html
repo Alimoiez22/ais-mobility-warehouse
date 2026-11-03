@@ -1,0 +1,553 @@
+<title>Danish Waters AIS</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="One day of ship traffic in Danish waters, cleaned and modelled in a PostgreSQL, PostGIS and MobilityDB warehouse.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one 1120px column; summary figures, then the map as the centrepiece, then one band per research question. */
+:root {
+  --bg: #f5f6f7; --surface: #ffffff; --ink: #0f1419; --ink-2: #48515a; --muted: #6e7780; --rule: #e0e4e8;
+  --water: #eef2f5; --land: #dce1e5; --coast: #c3cbd2; --bar: #b4bcc4; --halo: #ffffff;
+  --s0: #2a78d6; --s1: #eb6834; --s2: #1baf7a; --s3: #98a1a9; --track-alpha: 0.5;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0d1114; --surface: #141a1e; --ink: #e8ecef; --ink-2: #b1bac2; --muted: #87909a; --rule: #252d33;
+  --water: #0f1519; --land: #1d252b; --coast: #2e3940; --bar: #4b555e; --halo: #141a1e;
+  --s0: #3987e5; --s1: #d95926; --s2: #199e70; --s3: #66707a; --track-alpha: 0.62; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0d1114; --surface: #141a1e; --ink: #e8ecef; --ink-2: #b1bac2; --muted: #87909a; --rule: #252d33;
+  --water: #0f1519; --land: #1d252b; --coast: #2e3940; --bar: #4b555e; --halo: #141a1e;
+  --s0: #3987e5; --s1: #d95926; --s2: #199e70; --s3: #66707a; --track-alpha: 0.62; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 40px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 48px; }
+h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(26px, 4vw, 36px); line-height: 1.15; }
+h2 { font-size: 20px; }
+h3 { font-size: 14px; font-weight: 500; color: var(--ink-2); }
+p { margin: 0; max-width: 68ch; color: var(--ink-2); }
+a { color: inherit; text-underline-offset: 3px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 12px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 13px/1.4 var(--mono); color: var(--muted); }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--rule);
+  border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.kpi { background: var(--surface); padding: 18px 20px; display: grid; gap: 4px; align-content: start; }
+.kpi .label { font-size: 13px; color: var(--muted); }
+.kpi .value { font: 500 26px/1.2 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.kpi .note { font-size: 12.5px; color: var(--ink-2); }
+
+section { display: grid; gap: 18px; min-width: 0; }
+.head { display: grid; gap: 6px; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; min-width: 0; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+.panel h3 { margin-bottom: 14px; }
+.caption { font-size: 12.5px; color: var(--muted); margin-top: 10px; max-width: none; }
+
+/* map */
+.mapbox { position: relative; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--water); }
+#map { display: block; width: 100%; height: clamp(380px, 62vw, 640px); touch-action: none; cursor: grab; }
+#map.dragging { cursor: grabbing; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--rule); border-radius: 999px;
+  background: var(--surface); color: var(--ink); font: 13px/1 var(--sans); cursor: pointer; }
+.chip .sw { width: 14px; height: 3px; border-radius: 2px; }
+.chip .count { font-family: var(--mono); color: var(--muted); font-size: 12px; }
+.chip[aria-pressed="false"] { color: var(--muted); }
+.chip[aria-pressed="false"] .sw { opacity: 0.25; }
+.chip:focus-visible, .zoom button:focus-visible { outline: 2px solid var(--s0); outline-offset: 2px; }
+.zoom { position: absolute; top: 12px; right: 12px; display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule);
+  border-radius: 8px; overflow: hidden; }
+.zoom button { width: 34px; height: 34px; border: 0; background: var(--surface); color: var(--ink); font: 500 17px/1 var(--sans); cursor: pointer; }
+.zoom button:hover, .chip:hover { background: var(--bg); }
+.maphint { position: absolute; left: 12px; top: 12px; font: 12px/1.3 var(--sans); color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 85%, transparent); padding: 6px 10px; border-radius: 6px; pointer-events: none; }
+
+.tip { position: fixed; z-index: 20; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--rule);
+  border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / 0.14); max-width: 260px; }
+.tip b { font-weight: 600; display: block; margin-bottom: 2px; }
+.tip .row { display: flex; justify-content: space-between; gap: 16px; color: var(--ink-2); }
+.tip .row span:last-child { font-family: var(--mono); color: var(--ink); }
+
+/* charts */
+svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+svg.chart text { font: 12px var(--sans); fill: var(--muted); }
+svg.chart .val { font: 12px var(--mono); fill: var(--ink-2); }
+svg.chart .lab { fill: var(--ink-2); }
+svg.chart .grid { stroke: var(--rule); stroke-width: 1; }
+svg.chart .hit { fill: transparent; }
+svg.chart .bar { fill: var(--bar); }
+svg.chart .bar.on, svg.chart .bar.accent { fill: var(--s0); }
+svg.chart .whisker { stroke: var(--ink-2); stroke-width: 1.5; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font-weight: 500; color: var(--muted); font-size: 12.5px; padding: 0 12px 10px 0; border-bottom: 1px solid var(--rule); }
+td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+td:first-child { color: var(--ink); }
+tr:last-child td { border-bottom: 0; }
+td.n, th.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 20px; padding-right: 0; }
+.tag { font: 11.5px/1 var(--mono); color: var(--muted); border: 1px solid var(--rule); border-radius: 4px; padding: 3px 6px; white-space: nowrap; }
+.scroll { overflow-x: auto; }
+
+footer { display: grid; gap: 8px; border-top: 1px solid var(--rule); padding-top: 22px; font-size: 13px; color: var(--muted); }
+footer p { color: var(--muted); max-width: 90ch; }
+@media (max-width: 560px) { .wrap { gap: 36px; padding-block: 24px 40px; } .panel { padding: 16px; } .maphint { display: none; } }
+</style>
+<!-- body -->
+<div class="wrap">
+  <header>
+    <div class="eyebrow">AIS Mobility Warehouse</div>
+    <h1>One day of shipping in Danish waters</h1>
+    <p>Every position report broadcast by ships around Denmark on Monday 26 October 2026, cleaned, turned into trips and loaded into a star-schema warehouse. Each line on the map is one trip.</p>
+    <div class="meta"><span>26 Oct 2026, 00:00&ndash;24:00 UTC</span><span>Source: Danish Maritime Authority AIS</span><span>PostgreSQL + PostGIS + MobilityDB</span></div>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section aria-labelledby="h-map">
+    <div class="head">
+      <h2 id="h-map">Where the ships went</h2>
+      <p>Trips are split when a ship goes silent for more than 30 minutes. Hover a line to see the ship; drag to pan, scroll or use the buttons to zoom.</p>
+    </div>
+    <div class="legend" id="legend" role="group" aria-label="Show or hide ship groups"></div>
+    <div class="mapbox">
+      <canvas id="map" role="img" aria-label="Map of ship trips around Denmark on 26 October 2026, coloured by ship group"></canvas>
+      <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">&minus;</button><button id="zreset" aria-label="Reset view">&#8634;</button></div>
+      <div class="maphint">Hover a line for details</div>
+    </div>
+    <p class="caption" id="mapnote"></p>
+  </section>
+
+  <section aria-labelledby="h-traffic">
+    <div class="head">
+      <h2 id="h-traffic">Traffic through the day</h2>
+      <p>Ships reporting a position in each hour, and the mix of ship types over the whole day (cleaned data).</p>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h3>Ships reporting, per hour (UTC)</h3><div id="hourly"></div></div>
+      <div class="panel"><h3>Ships seen during the day, by type</h3><div id="fleet"></div></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-clean">
+    <div class="head">
+      <div class="eyebrow">Research question 1</div>
+      <h2 id="h-clean">What the cleaning rules removed</h2>
+      <p>The rules run in this order on the raw file. Each bar is the number of reports that rule removed; the label adds its share of the raw total.</p>
+    </div>
+    <div class="panel"><div id="clean"></div><p class="caption" id="cleannote"></p></div>
+  </section>
+
+  <section aria-labelledby="h-olap">
+    <div class="head">
+      <div class="eyebrow">Research question 2</div>
+      <h2 id="h-olap">Questions the warehouse answers</h2>
+      <p>Eight analytical queries against the star schema: two fact tables (positions and trips) and four dimensions (ship, hour, grid cell, navigational status).</p>
+    </div>
+    <div class="panel scroll"><table id="olap"></table></div>
+  </section>
+
+  <section aria-labelledby="h-bench">
+    <div class="head">
+      <div class="eyebrow">Research question 3</div>
+      <h2 id="h-bench">How much spatial indexes speed up queries</h2>
+      <p>Median of five timed runs after two warm-ups; the thin line marks the middle 50% of runs. Each panel has its own scale. The fastest setup is highlighted.</p>
+    </div>
+    <div class="grid3" id="bench"></div>
+    <p class="caption" id="benchnote"></p>
+  </section>
+
+  <footer>
+    <p>AIS data: Danish Maritime Authority. Coastline: Natural Earth (public domain). Map lines are simplified to about 50 m. Left out of the map only: trips shorter than 0.5 km, ships that stayed within about 50 m of one spot, and trips averaging over 50 knots (leftover position errors).</p>
+    <p>Every figure on this page is generated by the pipeline from the raw file (<span class="num">make all</span>). Code, method and decision log: <a id="repo" href="#" target="_blank" rel="noopener">github.com/Alimoiez22/ais-mobility-warehouse</a>. <span id="built"></span></p>
+  </footer>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script type="application/json" id="data">__DATA__</script>
+<script>
+(() => {
+"use strict";
+const D = JSON.parse(document.getElementById("data").textContent);
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => Math.round(n).toLocaleString("en-US");
+const fmtMs = (v) => v < 10 ? v.toFixed(2) + " ms" : v < 100 ? v.toFixed(1) + " ms" : fmt(v) + " ms";
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const NS = "http://www.w3.org/2000/svg";
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ---------- tooltip ---------- */
+const tip = $("tip");
+function showTip(x, y, title, rows) {
+  tip.innerHTML = "<b>" + esc(title) + "</b>" + rows.map(([k, v]) => '<div class="row"><span>' + esc(k) + "</span><span>" + esc(v) + "</span></div>").join("");
+  tip.hidden = false;
+  const r = tip.getBoundingClientRect(), pad = 14;
+  let left = x + pad, top = y + pad;
+  if (left + r.width > innerWidth - 8) left = x - r.width - pad;
+  if (top + r.height > innerHeight - 8) top = y - r.height - pad;
+  tip.style.left = Math.max(8, left) + "px"; tip.style.top = Math.max(8, top) + "px";
+}
+const hideTip = () => { tip.hidden = true; };
+
+/* ---------- KPIs ---------- */
+{
+  const k = D.kpi, b = k.best;
+  const items = [
+    ["Raw position reports", fmt(k.raw), "one day, as delivered"],
+    ["Kept after cleaning", fmt(k.kept), (100 * k.kept / k.raw).toFixed(1) + "% of raw, six rules"],
+    ["Ships", fmt(k.ships), "distinct MMSI numbers"],
+    ["Trips", fmt(k.trips), "split at 30-minute gaps"],
+    ["Fastest window query", b ? Math.round(b.speedup) + "×" : "–", b ? fmtMs(b.median) + " vs " + fmtMs(D.bench.find(x => x.config === "none" && x.query === b.query).median) + " unindexed" : ""],
+  ];
+  $("kpis").innerHTML = items.map(([l, v, n]) => '<div class="kpi"><span class="label">' + l + '</span><span class="value">' + v + '</span><span class="note">' + n + "</span></div>").join("");
+}
+
+/* ---------- map ---------- */
+const canvas = $("map"), ctx = canvas.getContext("2d");
+const R2D = Math.PI / 180;
+const mx = (lon) => lon * R2D;
+const my = (lat) => Math.log(Math.tan(Math.PI / 4 + lat * R2D / 2));
+const unY = (y) => (2 * Math.atan(Math.exp(y)) - Math.PI / 2) / R2D;
+
+function decode(arr, scale) {           // integer deltas -> projected Float64Array [x0,y0,x1,y1,...]
+  const out = new Float64Array(arr.length);
+  let x = 0, y = 0;
+  for (let i = 0; i < arr.length; i += 2) {
+    x += arr[i]; y += arr[i + 1];
+    out[i] = mx(x / scale); out[i + 1] = my(y / scale);
+  }
+  return out;
+}
+const land = D.land.map((r) => decode(r, 1000));
+const tracks = D.tracks.map((t) => {
+  const xy = decode(t[8], 10000);
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let i = 0; i < xy.length; i += 2) {
+    if (xy[i] < x0) x0 = xy[i]; if (xy[i] > x1) x1 = xy[i];
+    if (xy[i + 1] < y0) y0 = xy[i + 1]; if (xy[i + 1] > y1) y1 = xy[i + 1];
+  }
+  return { g: t[0], name: t[1], type: t[2], km: t[3], min: t[4], kn: t[5], start: t[6], end: t[7], xy, box: [x0, y0, x1, y1] };
+});
+const visible = D.groups.map(() => true);
+const counts = D.groups.map((_, i) => tracks.filter((t) => t.g === i).length);
+
+// legend
+$("legend").innerHTML = D.groups.map((g, i) =>
+  '<button class="chip" type="button" id="grp' + i + '" aria-pressed="true" data-g="' + i + '"><span class="sw" style="background:var(--s' + i + ')"></span>' +
+  esc(g) + ' <span class="count">' + fmt(counts[i]) + "</span></button>").join("");
+$("legend").addEventListener("click", (e) => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  const i = +b.dataset.g; visible[i] = !visible[i]; b.setAttribute("aria-pressed", String(visible[i]));
+  hover = null; draw();
+});
+$("mapnote").textContent = fmt(tracks.length) + " of " + fmt(D.kpi.trips) + " trips drawn. " +
+  (land.length ? "" : "Coastline file missing: run make dashboard on a machine with internet to add it.");
+
+// view: world (projected) -> screen: sx = (x - cx) * k + w/2, sy = -(y - cy) * k + h/2
+let W = 0, H = 0, dpr = 1, view = null, hover = null;
+const [bx0, by0, bx1, by1] = D.bbox;
+function fitView() {
+  const x0 = mx(bx0), x1 = mx(bx1), y0 = my(by0), y1 = my(by1);
+  const k = Math.min(W / (x1 - x0), H / (y1 - y0)) * 0.98;
+  return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, k, k0: k };
+}
+function resize() {
+  const r = canvas.getBoundingClientRect();
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const first = !view;
+  W = r.width; H = r.height;
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  const fresh = fitView();
+  if (first) view = fresh; else { view.k = view.k / view.k0 * fresh.k; view.k0 = fresh.k; }
+  draw();
+}
+const toSX = (x) => (x - view.cx) * view.k + W / 2;
+const toSY = (y) => -(y - view.cy) * view.k + H / 2;
+const toWX = (sx) => (sx - W / 2) / view.k + view.cx;
+const toWY = (sy) => -(sy - H / 2) / view.k + view.cy;
+
+function pathOf(xy) {
+  ctx.moveTo(toSX(xy[0]), toSY(xy[1]));
+  for (let i = 2; i < xy.length; i += 2) ctx.lineTo(toSX(xy[i]), toSY(xy[i + 1]));
+}
+function inView(b, m) {
+  return !(toSX(b[2]) < -m || toSX(b[0]) > W + m || toSY(b[1]) < -m || toSY(b[3]) > H + m);
+}
+let raf = 0;
+function draw() { if (!raf) raf = requestAnimationFrame(render); }
+function render() {
+  raf = 0;
+  if (!view) return;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = css("--water"); ctx.fillRect(0, 0, W, H);
+  // land
+  if (land.length) {
+    ctx.beginPath();
+    for (const r of land) { pathOf(r); ctx.closePath(); }
+    ctx.fillStyle = css("--land"); ctx.fill("evenodd");
+    ctx.lineWidth = 0.6; ctx.strokeStyle = css("--coast"); ctx.stroke();
+  }
+  // tracks, "Other" first so the coloured groups sit on top
+  const lw = Math.max(0.7, Math.min(1.6, 0.7 * Math.sqrt(view.k / view.k0)));
+  ctx.lineJoin = "round"; ctx.lineCap = "round"; ctx.lineWidth = lw;
+  ctx.globalAlpha = parseFloat(css("--track-alpha")) || 0.5;
+  for (const g of [3, 2, 1, 0]) {
+    if (!visible[g]) continue;
+    ctx.beginPath();
+    for (const t of tracks) if (t.g === g && inView(t.box, 4)) pathOf(t.xy);
+    ctx.strokeStyle = css("--s" + g); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  if (hover) {
+    ctx.beginPath(); pathOf(hover.xy);
+    ctx.lineWidth = lw + 4; ctx.strokeStyle = css("--halo"); ctx.stroke();
+    ctx.lineWidth = lw + 1.6; ctx.strokeStyle = css("--s" + hover.g); ctx.stroke();
+  }
+  scaleBar();
+}
+function scaleBar() {                    // nautical-mile scale for the latitude at the view centre
+  const lat = unY(view.cy) * R2D;
+  const mPerPx = 6371008.8 * Math.cos(lat) / view.k;
+  const nmPerPx = mPerPx / 1852;
+  const steps = [1, 2, 5, 10, 20, 25, 50, 100, 200];
+  const nm = steps.reduce((best, s) => (s / nmPerPx <= 120 ? s : best), 1);
+  const px = nm / nmPerPx, x = 14, y = H - 18;
+  ctx.strokeStyle = css("--ink-2"); ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(x, y - 4); ctx.lineTo(x, y); ctx.lineTo(x + px, y); ctx.lineTo(x + px, y - 4); ctx.stroke();
+  ctx.fillStyle = css("--ink-2"); ctx.font = "12px " + css("--mono");
+  ctx.fillText(nm + " nmi", x + px + 6, y + 1);
+}
+
+// nearest visible track to a screen point, within 7 px
+function pick(sx, sy) {
+  const wx = toWX(sx), wy = toWY(sy), tol = 7 / view.k, tol2 = tol * tol;
+  let best = null, bd = tol2;
+  for (const t of tracks) {
+    if (!visible[t.g]) continue;
+    const b = t.box;
+    if (wx < b[0] - tol || wx > b[2] + tol || wy < b[1] - tol || wy > b[3] + tol) continue;
+    const a = t.xy;
+    for (let i = 2; i < a.length; i += 2) {
+      const x1 = a[i - 2], y1 = a[i - 1], dx = a[i] - x1, dy = a[i + 1] - y1;
+      const L = dx * dx + dy * dy;
+      let u = L ? ((wx - x1) * dx + (wy - y1) * dy) / L : 0;
+      u = u < 0 ? 0 : u > 1 ? 1 : u;
+      const ex = x1 + u * dx - wx, ey = y1 + u * dy - wy, d = ex * ex + ey * ey;
+      if (d < bd) { bd = d; best = t; }
+    }
+  }
+  return best;
+}
+function tipFor(t, x, y) {
+  showTip(x, y, t.name, [["Type", t.type], ["Trip", t.start + "–" + t.end + " UTC"],
+    ["Distance", t.km.toLocaleString("en-US", { maximumFractionDigits: 1 }) + " km"],
+    ["Duration", Math.floor(t.min / 60) + " h " + String(t.min % 60).padStart(2, "0") + " min"],
+    ["Average speed", t.kn == null ? "–" : t.kn.toFixed(1) + " kn"]]);
+}
+
+// interaction: drag to pan, wheel / pinch / buttons to zoom
+const pointers = new Map();
+let drag = null, moved = false, pinch = null;
+function zoomAt(sx, sy, f) {
+  const wx = toWX(sx), wy = toWY(sy);
+  view.k = Math.max(view.k0 * 0.8, Math.min(view.k0 * 40, view.k * f));
+  view.cx = wx - (sx - W / 2) / view.k; view.cy = wy + (sy - H / 2) / view.k;
+  draw();
+}
+const local = (e) => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+canvas.addEventListener("pointerdown", (e) => {
+  canvas.setPointerCapture(e.pointerId); pointers.set(e.pointerId, local(e)); moved = false;
+  if (pointers.size === 1) { drag = { p: local(e), cx: view.cx, cy: view.cy }; canvas.classList.add("dragging"); }
+  else if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), k: view.k }; drag = null; }
+});
+canvas.addEventListener("pointermove", (e) => {
+  const p = local(e);
+  if (pointers.has(e.pointerId)) pointers.set(e.pointerId, p);
+  if (pinch && pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    const f = (pinch.k * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d) / view.k;
+    zoomAt((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, f); moved = true; hideTip(); return;
+  }
+  if (drag) {
+    const dx = p[0] - drag.p[0], dy = p[1] - drag.p[1];
+    if (Math.abs(dx) + Math.abs(dy) > 3) moved = true;
+    if (moved) { view.cx = drag.cx - dx / view.k; view.cy = drag.cy + dy / view.k; hover = null; hideTip(); draw(); }
+    return;
+  }
+  if (e.pointerType === "mouse") {
+    const t = pick(p[0], p[1]);
+    if (t !== hover) { hover = t; draw(); }
+    t ? tipFor(t, e.clientX, e.clientY) : hideTip();
+  }
+});
+function endPointer(e) {
+  const p = local(e);
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) pinch = null;
+  if (pointers.size === 0) {
+    canvas.classList.remove("dragging");
+    if (drag && !moved && e.pointerType !== "mouse") {       // tap selects on touch screens
+      const t = pick(p[0], p[1]); hover = t; draw();
+      t ? tipFor(t, e.clientX, e.clientY) : hideTip();
+    }
+    drag = null;
+  }
+}
+canvas.addEventListener("pointerup", endPointer);
+canvas.addEventListener("pointercancel", endPointer);
+canvas.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse" && !drag) { hover = null; hideTip(); draw(); } });
+canvas.addEventListener("wheel", (e) => { e.preventDefault(); const p = local(e); zoomAt(p[0], p[1], Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
+canvas.addEventListener("dblclick", (e) => { const p = local(e); zoomAt(p[0], p[1], 2); });
+$("zin").onclick = () => zoomAt(W / 2, H / 2, 1.6);
+$("zout").onclick = () => zoomAt(W / 2, H / 2, 1 / 1.6);
+$("zreset").onclick = () => { view = fitView(); hover = null; hideTip(); draw(); };
+new ResizeObserver(resize).observe(canvas);
+
+/* ---------- small SVG chart helpers ---------- */
+function el(tag, attrs, parent, text) {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (text != null) n.textContent = text;
+  if (parent) parent.appendChild(n);
+  return n;
+}
+function niceScale(v) {                // [max, step] with 3-5 round ticks
+  const raw = v / 4, p = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * p).find((s) => s >= raw);
+  return [Math.ceil(v / step) * step, step];
+}
+function hoverable(node, title, rows) {
+  node.addEventListener("pointermove", (e) => showTip(e.clientX, e.clientY, title, rows));
+  node.addEventListener("pointerleave", hideTip);
+  node.addEventListener("pointerdown", (e) => showTip(e.clientX, e.clientY, title, rows));
+}
+
+// vertical bars: hourly ships
+function hourly(host) {
+  const data = D.hourly, w = host.clientWidth, h = 240, m = { l: 48, r: 4, t: 12, b: 26 };
+  const svg = el("svg", { class: "chart", width: w, height: h, viewBox: "0 0 " + w + " " + h, role: "img", "aria-label": "Bar chart of ships reporting per hour" }, host);
+  const [max, step] = niceScale(Math.max(...data.map((d) => d.ships)));
+  const iw = w - m.l - m.r, ih = h - m.t - m.b, bw = iw / data.length;
+  for (let v = 0; v <= max + 1e-9; v += step) {
+    const y = m.t + ih - ih * v / max;
+    el("line", { class: "grid", x1: m.l, x2: w - m.r, y1: y, y2: y }, svg);
+    el("text", { x: m.l - 8, y: y + 4, "text-anchor": "end" }, svg, fmt(v));
+  }
+  data.forEach((d, i) => {
+    const bh = ih * d.ships / max, x = m.l + i * bw;
+    el("path", { class: "bar", d: roundTop(x + 2, m.t + ih - bh, bw - 4, bh, 3) }, svg);
+    if (d.h % (w < 420 ? 6 : 3) === 0) el("text", { x: x + bw / 2, y: h - 6, "text-anchor": "middle" }, svg, String(d.h).padStart(2, "0") + ":00");
+    const hit = el("rect", { class: "hit", x, y: m.t, width: bw, height: ih }, svg);
+    hoverable(hit, String(d.h).padStart(2, "0") + ":00–" + String(d.h + 1).padStart(2, "0") + ":00 UTC",
+      [["Ships", fmt(d.ships)], ["Position reports", fmt(d.reports)]]);
+  });
+}
+function roundTop(x, y, w, h, r) {
+  r = Math.min(r, w / 2, h);
+  return "M" + x + "," + (y + h) + "V" + (y + r) + "Q" + x + "," + y + " " + (x + r) + "," + y + "H" + (x + w - r) + "Q" + (x + w) + "," + y + " " + (x + w) + "," + (y + r) + "V" + (y + h) + "Z";
+}
+function roundRight(x, y, w, h, r) {
+  r = Math.min(r, h / 2, w);
+  return "M" + x + "," + y + "H" + (x + w - r) + "Q" + (x + w) + "," + y + " " + (x + w) + "," + (y + r) + "V" + (y + h - r) + "Q" + (x + w) + "," + (y + h) + " " + (x + w - r) + "," + (y + h) + "H" + x + "Z";
+}
+
+// horizontal bars, labelled
+function hbars(host, rows, opts) {
+  const w = host.clientWidth, rowH = opts.rowH || 30, labW = Math.min(opts.labW || 150, w * 0.42), valW = opts.valW || 120;
+  const h = rows.length * rowH + 4;
+  const svg = el("svg", { class: "chart", width: w, height: h, viewBox: "0 0 " + w + " " + h, role: "img", "aria-label": opts.aria }, host);
+  const max = Math.max(...rows.map((r) => Math.max(r.v, r.hi || 0))) || 1, iw = w - labW - valW;
+  rows.forEach((r, i) => {
+    const y = i * rowH + 4, bh = Math.min(14, rowH - 12), bw = Math.max(2, iw * r.v / max);
+    el("text", { class: "lab", x: 0, y: y + bh / 2 + 4 }, svg, r.label);
+    el("path", { class: "bar" + (r.accent ? " accent" : ""), d: roundRight(labW, y, bw, bh, 3) }, svg);
+    let end = labW + bw;
+    if (r.lo != null) {
+      const x1 = labW + iw * r.lo / max, x2 = labW + iw * r.hi / max;
+      el("line", { class: "whisker", x1, x2, y1: y + bh / 2, y2: y + bh / 2 }, svg);
+      end = Math.max(end, x2);
+    }
+    el("text", { class: "val", x: end + 8, y: y + bh / 2 + 4 }, svg, r.text);
+    const hit = el("rect", { class: "hit", x: 0, y: y - 6, width: w, height: rowH }, svg);
+    if (r.tip) hoverable(hit, r.tip[0], r.tip[1]);
+  });
+}
+
+const charts = [];
+const chart = (host, fn) => { charts.push([host, fn]); };
+chart($("hourly"), hourly);
+chart($("fleet"), (host) => hbars(host, D.fleet.map((f) => ({ label: f.type, v: f.ships, text: fmt(f.ships),
+  tip: [f.type, [["Ships", fmt(f.ships)], ["Position reports", fmt(f.reports)]]] })), { aria: "Ships by type", rowH: 24, labW: 130, valW: 56 }));
+
+{
+  const label = { exact_duplicates: "Exact duplicates", non_vessel_transmitter: "Not a ship transponder", invalid_ship_mmsi: "Invalid ship ID (MMSI)",
+    outside_study_area: "Outside study area", same_ship_same_second: "Same ship, same second", position_jumps: "Impossible position jumps" };
+  chart($("clean"), (host) => hbars(host, D.clean.map((c) => ({ label: c.step + ". " + (label[c.rule] || c.rule), v: c.removed,
+    text: fmt(c.removed) + "  ·  " + (c.pct < 0.01 && c.removed ? "<0.01" : c.pct.toFixed(2)) + "%",
+    tip: [label[c.rule] || c.rule, [["Removed", fmt(c.removed)], ["Share of raw", c.pct.toFixed(2) + "%"]]] })),
+    { aria: "Reports removed by each cleaning rule", labW: 200, valW: 150, rowH: 32 }));
+  const dup = D.clean.find((c) => c.rule === "exact_duplicates");
+  $("cleannote").textContent = "In total " + fmt(D.kpi.raw - D.kpi.kept) + " reports (" + (100 - 100 * D.kpi.kept / D.kpi.raw).toFixed(1) +
+    "%) were removed. " + (dup ? "Exact duplicates are the largest group, most likely the same message picked up by more than one receiving station." : "");
+}
+
+// OLAP table
+{
+  const tech = { q1: "ROLLUP", q2: "CUBE", q3: "Spatial", q4: "Space + time", q5: "Time window", q6: "Proximity", q7: "ROLLUP", q8: "Ranking" };
+  $("olap").innerHTML = "<thead><tr><th>Question</th><th>Technique</th><th class=n>Rows</th><th class=n>Runtime</th></tr></thead><tbody>" +
+    D.olap.map((o) => "<tr><td>" + esc(o.question) + '</td><td><span class="tag">' + (tech[o.q.slice(0, 2)] || "") + '</span></td><td class="n">' +
+      fmt(o.rows) + '</td><td class="n">' + fmtMs(o.ms) + "</td></tr>").join("") + "</tbody>";
+}
+
+// benchmark small multiples
+{
+  const names = { none: "No index", gist: "GiST", spgist: "SP-GiST", gist_sorted: "GiST, sorted rows" };
+  const titles = { B1_small_window: "Small area (Copenhagen harbour)", B2_large_window: "Large area (Great Belt)", B3_knn_10: "10 nearest ships (\u00d8resund)" };
+  for (const q of Object.keys(titles)) {
+    const rows = D.bench.filter((b) => b.query === q);
+    if (!rows.length) continue;
+    const best = Math.min(...rows.map((r) => r.median));
+    const panel = document.createElement("div"); panel.className = "panel";
+    panel.innerHTML = "<h3>" + titles[q] + '</h3><div class="plot"></div>';
+    $("bench").appendChild(panel);
+    chart(panel.querySelector(".plot"), (host) => hbars(host, rows.map((r) => ({ label: names[r.config] || r.config, v: r.median, lo: r.q1, hi: r.q3, accent: r.median === best,
+      text: fmtMs(r.median), tip: [names[r.config] + " · " + titles[q], [["Median", fmtMs(r.median)], ["Middle 50%", fmtMs(r.q1) + " – " + fmtMs(r.q3)],
+        ["Speed-up vs no index", r.speedup.toFixed(1) + "×"]]] })), { aria: "Query time by index type", labW: 118, valW: 72, rowH: 30 }));
+  }
+}
+
+{
+  const g = (c, q) => D.bench.find((b) => b.config === c && b.query === q) || {};
+  const a = g("gist", "B1_small_window"), b = g("gist_sorted", "B1_small_window"), c = g("gist_sorted", "B2_large_window"), s = g("spgist", "B3_knn_10");
+  const parts = [];
+  if (a.pages && b.pages) parts.push("Why sorting matters: for the small area, GiST on the unsorted table still read " + fmt(a.pages) +
+    " data pages, because matching rows are scattered across the table. After sorting the rows by location it read " + fmt(b.pages) +
+    ", and the query ran " + Math.round(b.speedup) + "\u00d7 faster than with no index" + (c.speedup ? " (" + c.speedup.toFixed(1) + "\u00d7 for the large area)." : "."));
+  if (s.scan) parts.push("For the nearest-ship query with SP-GiST, the planner chose " + (s.scan === "Seq Scan" ? "a full table scan" : s.scan.toLowerCase()) + ", so that index did not help.");
+  $("benchnote").textContent = parts.join(" ");
+}
+$("repo").href = D.repo;
+// charts are drawn at their real pixel width, so text keeps its size on every screen
+let chartTimer = 0;
+function drawCharts() { for (const [host, fn] of charts) { host.replaceChildren(); fn(host); } }
+drawCharts();
+new ResizeObserver(() => { clearTimeout(chartTimer); chartTimer = setTimeout(drawCharts, 80); }).observe(document.querySelector(".wrap"));
+$("built").textContent = "Page built " + D.built + ".";
+
+// redraw the canvas when the theme changes (tokens are read at draw time)
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+})();
+</script>

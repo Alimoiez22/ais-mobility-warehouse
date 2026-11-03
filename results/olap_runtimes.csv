@@ -1,9 +1,9 @@
 query,question,result_rows,execution_ms
-q1_traffic_by_type_and_daypart,Q1: How is AIS traffic (reports and distinct ships) spread over ship types and parts of the day? (ROLLUP),126,12457.3
-q2_type_by_navstatus_cube,"Q2: Which combinations of ship type and navigational status occur, with all subtotals? (CUBE)",133,19399.5
-q3_busiest_cells,Q3: Which 0.25-degree grid cells see the most distinct ships during the day?,10,7038.8
-q4_spatial_window_oresund,"Q4: Which ship types used the Øresund strait (55.55-56.10 N, 12.45-12.85 E) during the morning rush 07:00-09:00? (spatial + temporal window)",18,117.9
-q5_trips_active_at_noon,"Q5: How many trips were under way at some point between 12:00 and 13:00, per ship type, and how long were they? (temporal window on trips)",25,3.8
-q6_close_encounters_oresund,Q6: Which pairs of moving ships came within 500 m of each other in the same minute in the Øresund between 07:00 and 09:00? (proximity),20,533.4
-q7_trip_speed_by_type_rollup,"Q7: What are the typical trip length and average speed per ship type and transponder class, with subtotals? (ROLLUP on trips)",25,7.6
-q8_longest_trips,"Q8: Which were the ten longest trips of the day, by which ships, from which cell to which cell?",10,12.8
+q1_traffic_by_type_and_daypart,Q1: How is AIS traffic (reports and distinct ships) spread over ship types and parts of the day? (ROLLUP),126,14083.6
+q2_type_by_navstatus_cube,"Q2: Which combinations of ship type and navigational status occur, with all subtotals? (CUBE)",133,20099.0
+q3_busiest_cells,Q3: Which 0.25-degree grid cells see the most distinct ships during the day?,10,6969.1
+q4_spatial_window_oresund,"Q4: Which ship types used the Øresund strait (55.55-56.10 N, 12.45-12.85 E) during the morning rush 07:00-09:00? (spatial + temporal window)",18,130.1
+q5_trips_active_at_noon,"Q5: How many trips were under way at some point between 12:00 and 13:00, per ship type, and how long were they? (temporal window on trips)",25,9.5
+q6_close_encounters_oresund,Q6: Which pairs of moving ships came within 500 m of each other in the same minute in the Øresund between 07:00 and 09:00? (proximity),20,620.7
+q7_trip_speed_by_type_rollup,"Q7: What are the typical trip length and average speed per ship type and transponder class, with subtotals? (ROLLUP on trips)",25,9.4
+q8_longest_trips,"Q8: Which were the ten longest trips of the day, by which ships, from which cell to which cell?",10,10.5

@@ -1,8 +1,8 @@
-measured_at_utc: 2026-10-31 21:31:49
+measured_at_utc: 2026-11-03 18:22:18
 host_os: Windows-11-10.0.26300-SP0
 host_cpu: Intel64 Family 6 Model 140 Stepping 1, GenuineIntel
 docker_cpus: 8
-docker_mem_bytes: 4107997184
+docker_mem_bytes: 4107993088
 docker_kernel: 6.18.54.1-microsoft-standard-WSL2
 server: PostgreSQL 18.4 (Debian 18.4-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
 postgis: 3.6.4
@@ -11,4 +11,4 @@ work_mem: 4MB
 effective_cache_size: 4GB
 max_parallel_workers_per_gather: 2
 jit: on
-rows_in_dw.fact_position: 9145546
+rows_in_dw.fact_position: 9145393
